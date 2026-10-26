@@ -54,5 +54,5 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 ## 2026-10-26 update
 - Renamed to pros.gg (display text, og.png, favicon). Domain not bought; URL unchanged.
 - Launch prep: build.py SITE constant drives canonical/og URLs, robots.txt, sitemap.xml. README "Custom domain"
-  has the DNS records + Pages steps. Still on the user: buy pros.gg, set DNS, Pages custom domain, flip SITE;
+  has the DNS records + Pages steps. Still on the user: pros.gg is taken (registered 2017, Namecheap); pick another (free 2026-10-26: prostats.gg, prosgg.gg, prodb.gg, proledger.gg, prosgg.com), set DNS, Pages custom domain, flip SITE;
   send gol.gg the permission note.
