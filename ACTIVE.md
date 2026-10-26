@@ -1,37 +1,37 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-25
+Last updated: 2026-10-26
 
 ## Goal
-op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games), public on GitHub Pages
-like Worlds Scout (techreign), auto-refreshed.
+op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
+https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refreshed by a GitHub Action every 3 h.
 
 ## How it works
-- `pipeline/scrape.py`: gol.gg season S16 tournament list → match lists → per game `page-game` (teams, objectives,
-  bans/picks, runes, spells, items, KDA, CS) + `page-fullstats` (60+ stats). Raw pages gzipped in cache/ (not committed);
-  parsed games in data/games/<tournament-slug>.json (committed). Failed parses go to `bad` and are skipped after 2 tries.
-- `pipeline/build.py`: data/games → dist/data (index.json, p/<pid>, t/<tid>, c/<champ>, g/<tournament>) + Data Dragon refs.
-- `src/app.html`: single-file SPA, hash routes: #/ , #/players, #/champions, #/teams, #/tournaments,
-  #/player/<id>, #/team/<id>, #/champion/<DDid>, #/game/<tournament>/<gid>, #/t/<tournament>. `?s=lg:LCK` or `?s=t:<slug>` filter.
-- Local: `cd dist && python -m http.server 8793` (8790 is taken by Load Bearing).
+- `pipeline/scrape.py`: gol.gg season S16 → per game `page-game` + `page-fullstats` → data/games/<tournament>.json.
+- `pipeline/extras.py`: per game `page-timeline` (gold per player per minute + event log) and `game/ajax.build.php`
+  ×10 players (item purchase order, skill order, full runes + shards) → data/extra/<tournament>/<gid>.json
+  (one file per game so bot commits only add files). 11 requests/game, time-boxed (`--minutes`).
+- Both scrapers: 1 req/s, stop the run after 3 consecutive failed URLs (`Unreachable`).
+- `pipeline/build.py`: → dist/data: index.json (players by[t] has 14 stats; team `lo` logos + player `ph` photos
+  hotlinked from lolesports getTeams), p/ t/ c/ g/ shards, x/<gid>.json extras, meta.json (tier list cube:
+  champ × tournament × patch × role). Data fetches are cache-busted with index `v`.
+- `src/app.html` routes: #/ (op.gg-style landing), #/champions (tier list, role + patch), #/players, #/leaderboard,
+  #/teams, #/tournaments, #/compare (multi-search), #/player/<id>, #/team/<id>, #/champion/<DDid>, #/game/<t>/<gid>
+  (Overview / Gold & timeline / Builds tabs), #/t/<slug>, #/h2h/team/<a>/<b>, #/h2h/player/<a>/<b>.
+  Recent searches + favourites in localStorage (rl.recent / rl.fav).
+- Local: `cd dist && python -m http.server 8793` (8790 is Load Bearing). dist/phone.html = 390px iframe preview.
 
 ## Gotchas
-- gol.gg shows a stale "stats not updated since 4th April" banner (commented out); data is complete.
-- Player rows nest a rune tooltip table: rows are split on the champion-link cell, not matched as <tr>..</tr>.
-- Champion icon keys can contain dots (Dr.Mundo). Some pages give only a dragon count (team `dr`), no drake types.
+- 2026-10-25: gol.gg started timing out from the home IP after ~4 h at 1.5 req/s (+ extras test). Rate cut to 1.0
+  and auto-stop added. Don't scrape locally until it answers again (`curl -m 15 https://gol.gg/robots.txt`).
+- gol.gg banner "stats not updated since 4th April" is stale. Player rows nest a rune tooltip table. Champion icon keys
+  can contain dots (Dr.Mundo). Some pages only give a dragon count (team `dr`).
+- The builds ajax lives at /game/ajax.build.php (base href /game/), POST game_id & player_id (= our pid).
 
 ## Status / next
-- First full scrape running 2026-10-25 (≈3 h). Then `scrape.py --reparse` (adds `dr` to early games), rebuild, check sizes,
-  create repo techreign/rift-ledger, enable Pages (Actions), push.
-- Home is an op.gg-style landing (big wordmark + search pill with League select); player left column has op.gg-style
-  rank cards (current tournament, season, role rank by KDA) + tournament list above the champion pool.
-- Accuracy checked 2026-10-25: per-champion picks/bans match gol.gg exactly for LCK Rounds 1-2, MSI, LPL Split 2.
-- Name: user floated "prop.gg" (domain taken + reads like prop bets → fan-policy risk); undecided.
-- TODO (user asked to remember): LIFETIME data — all gol.gg seasons back to S3 as an option (not the default view).
-  Needs a season dimension in build/app (season select next to League), and a data diet first: 5.3k games = 86 MB already;
-  lifetime ≈ 10x games → split index per season, drop duplicated champion rows, maybe shard p/ per season.
-- op.gg parity backlog: last-20 summary above match history; match-history filters (champion/role/tournament);
-  form/W-L trend graph (LP-graph analogue); "played with" teammates; champion builds (core/boots/runes/spells),
-  counters & synergies from lane opponents, tier list by role + patch filter; per-game gold graph / build order /
-  objective timeline (gol.gg page-timeline); role leaderboards; head-to-head (team & player); compare/multi-search;
-  team logos + player photos (lolesports API); recent searches/favourites (localStorage).
+- Live with 6,863 games at first deploy; the Action is filling the rest + extras (builds/timeline backfill ~250 games
+  per run → a few days for the season). Champion build sections say "still being collected" until then.
+- Accuracy: per-champion picks/bans matched gol.gg exactly for LCK Rounds 1-2, MSI, LPL Split 2.
+- Name: user floated "prop.gg" (domain taken; "prop" reads like prop bets → fan-policy risk). Undecided.
+- TODO (user asked to remember): LIFETIME data (all gol.gg seasons) as an option, not the default. Needs a season
+  dimension + data diet (6.9k games ≈ 120 MB dist already).
