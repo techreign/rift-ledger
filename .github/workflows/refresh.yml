@@ -1,0 +1,57 @@
+name: Refresh and deploy
+
+on:
+  schedule:
+    - cron: "23 */3 * * *"   # new pro games every 3 hours
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # gol.gg outages or throttling must not block a deploy of what we already have
+      - name: Scrape new games
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: python pipeline/scrape.py
+      - name: Backfill per-game extras (gold, timeline, builds), time-boxed
+        if: github.event_name != 'push'
+        continue-on-error: true
+        working-directory: pipeline
+        run: python extras.py --minutes 40
+      - name: Build
+        run: python pipeline/build.py
+      - name: Commit new games
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "rift-ledger-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || (git commit -m "New games $(date -u +%FT%H:%MZ)" && git push)
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

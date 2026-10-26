@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rift Ledger</title>
+<meta name="description" content="Every 2026 pro League of Legends game: player match histories, champion pools, builds, team records and tournament stats.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1015; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a; --text: #e8eaee; --dim: #9aa1ad; --faint: #6b7280;
+  --gold: #c8aa6e; --gold2: #f0e6d2; --win: #3b6fd8; --winbg: #182338; --loss: #d8404f; --lossbg: #2c1a20;
+  --blue: #4f8df5; --red: #ef5765; --good: #36c48e; --bad: #ef5765; --r: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 Inter, system-ui, sans-serif; }
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--gold2); }
+img { display: block; }
+button, select, input { font: inherit; color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+/* header */
+header { position: sticky; top: 0; z-index: 20; background: rgba(14,16,21,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.bar { display: flex; align-items: center; gap: 18px; height: 58px; }
+.logo { font-weight: 800; letter-spacing: .14em; font-size: 15px; color: var(--gold); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+.logo i { width: 22px; height: 22px; border: 2px solid var(--gold); transform: rotate(45deg); display: inline-block; border-radius: 3px; position: relative; }
+.logo i::after { content: ""; position: absolute; inset: 4px; background: var(--gold); border-radius: 1px; }
+nav.main { display: flex; gap: 4px; }
+nav.main a { padding: 7px 9px; white-space: nowrap; border-radius: 8px; color: var(--dim); font-weight: 600; }
+nav.main a.on, nav.main a:hover { color: var(--text); background: var(--panel2); }
+.search { position: relative; flex: 1; min-width: 150px; max-width: 360px; margin-left: auto; }
+.search input { width: 100%; height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); padding: 0 12px 0 34px; outline: none; }
+.search input:focus { border-color: var(--gold); }
+.search svg { position: absolute; left: 10px; top: 10px; opacity: .55; }
+.sugg { position: absolute; top: 42px; left: 0; right: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+.sugg a { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+.sugg a.sel, .sugg a:hover { background: var(--panel2); color: var(--text); }
+.sugg small { color: var(--faint); margin-left: auto; }
+.scope { height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); padding: 0 8px; max-width: 220px; }
+
+/* layout bits */
+main { padding: 22px 0 60px; min-height: 70vh; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); }
+.card > h3, .sec-h { margin: 0; padding: 12px 16px; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.sec-h .sp { margin-left: auto; text-transform: none; letter-spacing: 0; }
+.grid2 { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 16px; align-items: start; }
+.grid2b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.stack { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.card { min-width: 0; }
+h1 { margin: 0; font-size: 26px; }
+.muted { color: var(--dim); } .faint { color: var(--faint); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 99px; background: var(--panel2); color: var(--dim); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { padding: 6px 11px; border-radius: 99px; border: 1px solid var(--line); background: var(--panel); color: var(--dim); font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.chip.on { border-color: var(--gold); color: var(--gold2); background: #2a2519; }
+.ci { border-radius: 8px; background: #000; }
+.ci.r { border-radius: 50%; }
+.role { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; color: var(--gold); }
+.good { color: var(--good); } .bad { color: var(--bad); }
+.wr-hi { color: #ff8b3d; } .kda-hi { color: #ff8b3d; } .kda-mid { color: #3fb6c9; }
+.empty { padding: 30px; text-align: center; color: var(--dim); }
+.loading { padding: 50px; text-align: center; color: var(--faint); }
+
+/* tables */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { text-align: left; font-size: 11.5px; color: var(--faint); font-weight: 600; padding: 9px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; user-select: none; }
+.tbl th.s { cursor: pointer; } .tbl th.s:hover { color: var(--text); }
+.tbl th.on { color: var(--gold2); }
+.tbl td { padding: 7px 10px; border-bottom: 1px solid #20242d; white-space: nowrap; }
+.tbl tr:last-child td { border-bottom: 0; }
+.tbl tbody tr:hover { background: #1b1f27; }
+.tbl .n { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl .who { display: flex; align-items: center; gap: 10px; }
+.more { display: block; width: 100%; padding: 11px; background: none; border: 0; border-top: 1px solid var(--line); color: var(--dim); cursor: pointer; font-weight: 600; }
+.more:hover { color: var(--text); background: #1b1f27; }
+.scroll { overflow-x: auto; }
+
+/* home (op.gg-style landing: big wordmark + centered search) */
+body.home header .search { visibility: hidden; }
+.landing { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 70px 16px 46px; margin: -22px -16px 22px; border-bottom: 1px solid var(--line); overflow: visible; }
+.landing .bg { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.landing .bg::before { content: ""; position: absolute; inset: 0; background: var(--splash) center 22% / cover no-repeat; opacity: .32; filter: saturate(.9); }
+.landing .bg::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(14,16,21,.15), rgba(14,16,21,.85) 70%), linear-gradient(180deg, rgba(14,16,21,.2), var(--bg)); }
+.biglogo { display: flex; align-items: center; gap: 18px; font-weight: 800; letter-spacing: .16em; font-size: 52px; color: var(--gold); text-shadow: 0 4px 30px rgba(0,0,0,.6); }
+.biglogo i { width: 46px; height: 46px; border: 4px solid var(--gold); transform: rotate(45deg); border-radius: 6px; position: relative; flex: none; }
+.biglogo i::after { content: ""; position: absolute; inset: 8px; background: var(--gold); border-radius: 2px; }
+.landing .tag { color: #c9ced8; margin: 10px 0 34px; font-size: 15px; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
+.bigsearch { position: relative; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #31313c; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05); text-align: left; padding: 0 30px 0 36px; }
+.bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #5383e8; }
+.bigsearch .lg { display: flex; flex-direction: column; justify-content: center; padding-right: 16px; width: 210px; flex: none; position: relative; }
+.bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #9e9eb1; pointer-events: none; }
+.bigsearch label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
+.bigsearch .lg select { appearance: none; border: 0; background: transparent; color: #9e9eb1; font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
+.bigsearch .lg select option, .bigsearch .lg select optgroup { color: #e8eaee; background: #31313c; }
+.bigsearch .div { width: 1px; height: 28px; background: #515163; flex: none; }
+.bigsearch .q { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; min-width: 0; }
+.bigsearch .q input { border: 0; outline: none; background: transparent; color: #fff; font-size: 15px; padding: 0; width: 100%; }
+.bigsearch .q input::placeholder { color: #9e9eb1; }
+.bigsearch button { border: 0; background: none; color: #5383e8; font-weight: 800; font-size: 30px; letter-spacing: -.02em; cursor: pointer; padding: 0; font-style: italic; }
+.bigsearch button:hover { color: #7aa0f0; }
+.bigsearch .sugg { top: 80px; color: var(--text); z-index: 5; }
+.bigsearch select, .bigsearch input { height: 22px; line-height: 22px; display: block; }
+.landing .chips { justify-content: center; margin-top: 24px; max-width: 900px; }
+.landing .chips .chip { background: rgba(23,26,33,.75); backdrop-filter: blur(4px); }
+.landing .counts { margin-top: 18px; color: var(--faint); font-size: 12.5px; }
+.landing .counts b { color: var(--dim); }
+.hero { padding: 26px 0 8px; display: flex; align-items: end; gap: 24px; flex-wrap: wrap; }
+.hero h1 { font-size: 34px; letter-spacing: -.02em; }
+.hero h1 b { color: var(--gold); }
+.stat-row { display: flex; gap: 26px; margin-left: auto; }
+.stat-row div b { display: block; font-size: 22px; }
+.stat-row div span { color: var(--faint); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+.gl { display: grid; }
+.gl a { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #20242d; }
+.gl a:last-child { border-bottom: 0; }
+.gl a:hover { background: #1b1f27; color: inherit; }
+.gl .side { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.prof > div > .logo-img, .prof > div > .tini { margin: 0 auto 6px; }
+.gl .side.r { flex-direction: row-reverse; text-align: right; }
+.gl .tn { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gl .tn.w { color: var(--gold2); } .gl .tn.l { color: var(--faint); }
+.gl .mid { text-align: center; font-size: 11.5px; color: var(--faint); min-width: 120px; }
+.gl .mid b { display: block; font-size: 16px; color: var(--text); }
+.mini { display: flex; gap: 2px; }
+.gl .meta { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 11.5px; color: var(--faint); margin-top: -4px; }
+
+/* profile header */
+.prof { display: flex; gap: 18px; align-items: center; padding: 20px; }
+.avatar { width: 84px; height: 84px; border-radius: 18px; background: linear-gradient(135deg, #2b2f3b, #1b1e26); border: 2px solid var(--gold); display: grid; place-items: center; font-size: 30px; font-weight: 800; color: var(--gold2); overflow: hidden; flex-shrink: 0; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; }
+.prof h1 { font-size: 28px; }
+.prof .sub { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
+.kpis { display: flex; gap: 26px; margin-left: auto; flex-wrap: wrap; }
+.kpi b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--faint); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; }
+.donut { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; }
+.donut span { width: 48px; height: 48px; border-radius: 50%; background: var(--panel); display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+/* op.gg-style rank cards + past tournaments (player left column) */
+.rk h3 b { color: var(--text); text-transform: none; letter-spacing: 0; }
+.rkb { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
+.emb { width: 54px; height: 54px; flex: none; display: grid; place-items: center; border-radius: 50%; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold2);
+  background: radial-gradient(circle at 50% 35%, #3a3222, #15130e 70%); border: 2px solid var(--gold); box-shadow: 0 0 18px rgba(200,170,110,.18); text-align: center; line-height: 1.1; padding: 4px; overflow: hidden; }
+.emb.sea { border-color: var(--blue); color: #cfe0ff; background: radial-gradient(circle at 50% 35%, #22304a, #0f141d 70%); box-shadow: 0 0 18px rgba(79,141,245,.18); }
+.rkb .t { min-width: 0; flex: 1; } .rkb .t b { display: block; font-size: 14px; line-height: 1.25; }
+.rkb .t div { font-size: 12.5px; }
+.rkb .r { text-align: right; font-size: 12.5px; white-space: nowrap; } .rkb .r b { display: block; font-size: 14px; }
+.past a { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 14px; border-top: 1px solid #20242d; font-size: 12.5px; }
+.past a:first-child { border-top: 0; } .past a:hover { background: #1b1f27; } .past a.on { background: #2a2519; }
+.past .tg { font-size: 10.5px; font-weight: 800; text-align: center; padding: 3px 0; border-radius: 6px; background: var(--panel2); color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.past .nm { min-width: 0; } .past .nm b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .past .nm span { color: var(--faint); }
+.past .rec { text-align: right; white-space: nowrap; } .past .rec span { display: block; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--line); }
+
+/* match history */
+.mh { display: grid; grid-template-columns: 82px 104px 92px 116px 113px minmax(0, 1fr) 26px; align-items: center; gap: 10px; padding: 10px 12px; border-left: 6px solid var(--win); background: var(--winbg); border-radius: 8px; }
+.mh.l { border-left-color: var(--loss); background: var(--lossbg); }
+.mhs { display: grid; gap: 6px; padding: 12px; }
+.mh .res { font-weight: 800; color: #7fa7ff; font-size: 13px; }
+.mh.l .res { color: #ff7b88; }
+.mh .meta { font-size: 11.5px; color: var(--dim); display: grid; gap: 1px; }
+.mh .meta .tr { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mh .champ { display: flex; gap: 3px; align-items: center; }
+.mh .champ .col { display: grid; gap: 3px; }
+.mh .kda b { font-size: 15px; } .mh .kda b i { font-style: normal; color: var(--bad); }
+.mh .kda span { display: block; font-size: 12px; color: var(--dim); }
+.mh .st { font-size: 12px; color: var(--dim); display: grid; gap: 1px; }
+.items { display: flex; gap: 3px; flex-wrap: wrap; }
+.items img, .items .ph { width: 26px; height: 26px; border-radius: 5px; background: rgba(0,0,0,.35); }
+.mh .vs { font-size: 12px; display: grid; gap: 3px; }
+.mh .vs div { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+.mh .vs .tn { overflow: hidden; text-overflow: ellipsis; }
+.xbtn { width: 28px; height: 100%; min-height: 60px; border: 0; border-radius: 6px; background: rgba(255,255,255,.04); cursor: pointer; color: var(--dim); }
+.xbtn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+.mh .items { display: grid; grid-template-columns: repeat(4, 26px); }
+.grid2 > .stack .tbl th, .grid2 > .stack .tbl td { padding: 7px 7px; }
+.detail { margin: -2px 0 6px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+
+/* scoreboard */
+.sb { background: var(--panel); }
+.sbh { display: flex; align-items: center; gap: 12px; padding: 10px 14px; font-size: 13px; flex-wrap: wrap; }
+.sbh.b { background: #1a2335; } .sbh.r { background: #301d24; }
+.sbh .res { font-weight: 800; }
+.sbh.b .res { color: #7fa7ff; } .sbh.r .res { color: #ff7b88; }
+.sbh .obj { margin-left: auto; display: flex; gap: 14px; color: var(--dim); font-size: 12px; align-items: center; }
+.sbh .bans { display: flex; gap: 3px; align-items: center; }
+.sbh .bans img { filter: grayscale(.9) brightness(.7); }
+.sbt td { padding: 6px 10px; }
+.sbt .items { flex-wrap: nowrap; }
+.sbt .pn { font-weight: 600; }
+.dbar { width: 70px; height: 6px; background: #2a2f3a; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+.dbar i { display: block; height: 100%; background: var(--red); }
+.sbt tr.me td { background: rgba(200,170,110,.08); }
+
+/* champion page */
+.chead { position: relative; overflow: hidden; }
+.chead .bgimg { position: absolute; inset: 0; background-size: cover; background-position: center 20%; opacity: .25; mask-image: linear-gradient(90deg, transparent, #000 40%); }
+.chead .prof { position: relative; }
+.bars { display: grid; gap: 8px; padding: 14px 16px; }
+.bars .row { display: grid; grid-template-columns: 34px 1fr 56px 52px; align-items: center; gap: 10px; font-size: 12.5px; }
+.bars .track { height: 8px; background: #252a34; border-radius: 4px; overflow: hidden; }
+.bars .track i { display: block; height: 100%; background: var(--gold); border-radius: 4px; }
+.iteml { display: grid; gap: 2px; padding: 8px; }
+.iteml .row { display: grid; grid-template-columns: 30px 1fr 54px 48px; gap: 10px; align-items: center; padding: 4px 8px; font-size: 12.5px; border-radius: 6px; }
+.iteml .row:hover { background: #1b1f27; }
+
+/* logos, photos, favourites */
+.logo-img { object-fit: contain; flex: none; }
+.tl { display: inline-flex; align-items: center; gap: 7px; min-width: 0; }
+.tl span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tini { display: inline-grid; place-items: center; flex: none; border-radius: 6px; background: var(--panel2); color: var(--gold2); font-weight: 800; font-size: 9px; letter-spacing: .02em; }
+.pph { object-fit: cover; object-position: top; background: #0b0d11; flex: none; }
+.star { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--dim); cursor: pointer; padding: 4px 9px; font-size: 13px; }
+.star.on { color: var(--gold); border-color: var(--gold); }
+.sugg .sh { padding: 7px 12px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); display: flex; justify-content: space-between; }
+.sugg .sh button { background: none; border: 0; color: var(--faint); cursor: pointer; font-size: 11px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.seg a, .seg button { padding: 6px 12px; font-size: 12.5px; font-weight: 600; color: var(--dim); background: var(--panel); border: 0; border-right: 1px solid var(--line); cursor: pointer; }
+.seg a:last-child, .seg button:last-child { border-right: 0; }
+.seg .on { background: #2a2519; color: var(--gold2); }
+.fsel { height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); padding: 0 8px; max-width: 200px; }
+.fbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding: 12px; border-bottom: 1px solid var(--line); }
+
+/* player: last-20 summary */
+.s20 { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.s20a { display: flex; gap: 14px; align-items: center; }
+.s20c { display: grid; gap: 6px; font-size: 12.5px; }
+.s20c div { display: flex; gap: 7px; align-items: center; white-space: nowrap; }
+.s20r { display: flex; gap: 8px; align-items: flex-end; height: 64px; }
+.s20r div { width: 26px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.s20r i { display: block; width: 12px; background: var(--gold); border-radius: 3px; min-height: 2px; }
+.s20r span { font-size: 9.5px; color: var(--faint); font-weight: 700; }
+@media (max-width: 640px) { .s20 { grid-template-columns: 1fr; } .s20r { display: none; } }
+
+/* champion builds */
+.bsec { padding: 4px 8px 8px; border-bottom: 1px solid #20242d; } .bsec:last-child { border-bottom: 0; }
+.bsec h4 { margin: 10px 8px 2px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+.iteml .brow { grid-template-columns: minmax(0, 1fr) 70px 44px; }
+.bl { display: flex; align-items: center; gap: 4px; min-width: 0; flex-wrap: wrap; }
+.bl span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.arr { color: var(--faint); font-size: 16px; padding: 0 1px; }
+.sk { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; font-size: 11px; font-weight: 800; background: var(--panel2); color: var(--text); }
+.sk-Q { background: #2b4a7a; } .sk-W { background: #2c6b55; } .sk-E { background: #6b4a2c; } .sk-R { background: #6b2c47; }
+.skg { display: grid; gap: 3px; padding: 6px 8px 10px; overflow-x: auto; }
+.skr { display: grid; grid-template-columns: 26px repeat(18, 22px); gap: 3px; align-items: center; }
+.skr span:not(.sk) { height: 20px; border-radius: 4px; background: #1d2129; font-size: 10.5px; display: grid; place-items: center; font-weight: 700; }
+.skr span.on { color: #fff; }
+.rpage { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rgrp { display: inline-flex; gap: 3px; align-items: center; padding: 3px 6px; background: rgba(0,0,0,.25); border-radius: 8px; }
+
+/* tier list, leaderboard, h2h, compare, game timeline */
+.tier { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; font-weight: 800; font-size: 13px; }
+.tier.t0 { background: #ff4e50; color: #fff; } .tier.t1 { background: #ff9d3d; color: #1a1205; } .tier.t2 { background: #e8c547; color: #1a1605; } .tier.t3 { background: #3fb6c9; color: #071a1d; } .tier.t4 { background: #3a3f4b; color: #c9ced8; }
+.podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 14px; align-items: end; margin-bottom: 16px; }
+.pod { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 18px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); text-align: center; position: relative; min-width: 0; }
+.pod.p0 { border-color: var(--gold); background: linear-gradient(180deg, #2a2519, var(--panel)); padding-top: 26px; }
+.pod .pos { position: absolute; top: 8px; left: 12px; font-weight: 800; color: var(--gold); }
+.pod em { font-style: normal; font-size: 22px; font-weight: 800; color: var(--gold2); }
+.pod b { font-size: 15px; }
+.h2h { display: grid; grid-template-columns: 1fr auto 1fr; gap: 18px; align-items: center; padding: 22px; text-align: center; }
+.h2h > a { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.h2h h1 { font-size: 22px; }
+.h2h .mid .sc { font-size: 40px; font-weight: 800; }
+.cmp { max-width: 640px; margin: 0 auto 16px; } .cmp td { width: 33%; }
+.pcs { display: flex; gap: 4px; flex-wrap: wrap; } .pc { position: relative; } .pc small { position: absolute; right: -2px; bottom: -4px; background: var(--bg); border-radius: 5px; padding: 0 3px; font-size: 10px; }
+textarea#msq { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 10px; font: inherit; resize: vertical; }
+.go { background: var(--gold); color: #1a1408; border: 0; border-radius: 8px; padding: 8px 18px; font-weight: 800; cursor: pointer; }
+.cmpt th, .cmpt td { min-width: 120px; }
+.evl { display: grid; max-height: 520px; overflow: auto; }
+.ev { display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-left: 4px solid var(--blue); border-bottom: 1px solid #20242d; font-size: 12.5px; }
+.ev.r { border-left-color: var(--red); }
+.ev .t { width: 42px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.ev .who2 { min-width: 70px; } .ev .as { display: inline-flex; gap: 2px; opacity: .8; margin-left: auto; }
+.bpick { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px; border-bottom: 1px solid var(--line); }
+.bpick button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; background: var(--panel2); border: 2px solid transparent; border-radius: 8px; cursor: pointer; font-size: 11px; color: var(--dim); width: 74px; }
+.bpick button.b { border-bottom-color: var(--blue); } .bpick button.r { border-bottom-color: var(--red); }
+.bpick button.on { border-color: var(--gold); color: var(--text); }
+.bpick button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bord { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px 10px; }
+.bstep { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px; background: rgba(0,0,0,.2); border-radius: 8px; }
+.bstep .bi { display: flex; gap: 2px; } .bstep .bi img { border-radius: 5px; }
+@media (max-width: 640px) { .podium { grid-template-columns: 1fr; } .pod.p0 { order: -1; } .h2h { grid-template-columns: 1fr; } }
+
+footer { border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; padding: 22px 0 40px; }
+footer p { margin: 4px 0; }
+
+@media (max-width: 1000px) {
+  .grid2, .grid2b { grid-template-columns: minmax(0, 1fr); }
+  .mh { grid-template-columns: 82px 100px 1fr 26px; }
+  .mh .st, .mh .vs { display: none; }
+  .mh .items { grid-column: 2 / 4; }
+  .bar { flex-wrap: wrap; height: auto; padding-top: 10px; padding-bottom: 0; row-gap: 6px; }
+  nav.main { order: 9; width: 100%; overflow-x: auto; scrollbar-width: none; padding-bottom: 6px; }
+  nav.main a { white-space: nowrap; padding: 6px 10px; font-size: 13px; }
+}
+@media (max-width: 640px) {
+  .bar { gap: 10px; } .logo span { display: none; } .scope { max-width: 110px; }
+  .prof { flex-wrap: wrap; } .kpis { margin-left: 0; gap: 16px; }
+  .hero h1 { font-size: 26px; } .stat-row { margin-left: 0; }
+  .landing { padding: 40px 16px 28px; } .biglogo { font-size: 30px; gap: 12px; } .biglogo i { width: 28px; height: 28px; border-width: 3px; } .biglogo i::after { inset: 5px; }
+  .landing .tag { font-size: 13px; margin-bottom: 22px; }
+  .bigsearch { height: 60px; padding: 0 18px 0 22px; } .bigsearch .lg { width: 92px; padding-right: 8px; } .bigsearch .lg::after { right: 8px; } .bigsearch .q { padding: 0 12px; } .bigsearch button { font-size: 22px; }
+  .mh { grid-template-columns: 72px 1fr 28px; } .mh .kda { grid-column: 2; } .mh .champ { grid-column: 2; }
+  .mh .meta { grid-row: span 2; } .mh .items { grid-column: 1 / 3; }
+  .tbl .hide-s { display: none; }
+  .gl .mini { display: none; } .gl .mid { min-width: 64px; }
+}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <a class="logo" href="#/"><i></i><span>RIFT LEDGER</span></a>
+  <nav class="main">
+    <a href="#/champions" data-r="champions">Tier list</a><a href="#/players" data-r="players">Players</a><a href="#/leaderboard" data-r="leaderboard">Leaderboards</a>
+    <a href="#/teams" data-r="teams">Teams</a><a href="#/tournaments" data-r="tournaments">Tournaments</a><a href="#/compare" data-r="compare">Multi-search</a>
+  </nav>
+  <div class="search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+    <input id="q" placeholder="Search players, teams, champions" autocomplete="off" aria-label="Search">
+    <div class="sugg" id="sugg" hidden></div>
+  </div>
+  <select class="scope" id="scope" aria-label="League or tournament filter"></select>
+</div></header>
+<main><div class="wrap" id="app"><div class="loading">Loading every pro game of 2026…</div></div></main>
+<footer><div class="wrap">
+  <p>Rift Ledger is a free fan project. Game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; images from Riot's Data Dragon.</p>
+  <p>Rift Ledger isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+  <p id="built"></p>
+</div></footer>
+<script>
+"use strict";
+const S = { idx: null, cache: new Map(), scope: "", tours: {}, players: {}, teams: {}, champs: {} };
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const J = (path) => {
+  // index.json is re-checked every 10 minutes; everything else is keyed to the index's build stamp
+  const v = path === "index.json" ? Math.floor(Date.now() / 6e5) : (S.idx?.v || S.idx?.n);
+  if (!S.cache.has(path)) S.cache.set(path, fetch("data/" + path + "?v=" + v).then((r) => { if (!r.ok) throw new Error(path + " " + r.status); return r.json(); }));
+  return S.cache.get(path);
+};
+const DD = "https://ddragon.leagueoflegends.com/cdn/";
+const champImg = (c, sz = 32, cls = "ci") => `<img class="${cls}" src="${DD}${S.idx.dd.ver}/img/champion/${c}.png" width="${sz}" height="${sz}" alt="${esc(cname(c))}" title="${esc(cname(c))}" loading="lazy">`;
+const cname = (c) => (S.champs[c] && S.champs[c].n) || c;
+// team logo (lolesports, hotlinked) or initials; player photo or their most played champion
+const tLogo = (id, sz = 20) => { const t = S.teams[id]; return t?.lo ? `<img class="logo-img" src="${esc(t.lo)}" width="${sz}" height="${sz}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="tini" style="width:${sz}px;height:${sz}px">${esc(initials(t?.n || "?").slice(0, 3))}</span>`; };
+const pPhoto = (p, sz = 32, r = "50%") => p?.ph ? `<img class="pph" src="${esc(p.ph)}" width="${sz}" height="${sz}" style="border-radius:${r}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.f))" data-f="${esc(champImg(p.top?.[0], sz, "ci r"))}">` : champImg(p?.top?.[0], sz, "ci r");
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem("rl." + k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("rl." + k, JSON.stringify(v)); } catch {} },
+};
+function remember(item) { const r = store.get("recent", []).filter((x) => x.h !== item.h); r.unshift(item); store.set("recent", r.slice(0, 8)); }
+const isFav = (h) => store.get("fav", []).some((x) => x.h === h);
+function favBtn(item) { return `<button class="star ${isFav(item.h) ? "on" : ""}" data-fav='${esc(JSON.stringify(item))}' title="Favourite">${isFav(item.h) ? "★" : "☆"} Favourite</button>`; }
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-fav]"); if (!b) return;
+  const item = JSON.parse(b.dataset.fav); let f = store.get("fav", []);
+  f = isFav(item.h) ? f.filter((x) => x.h !== item.h) : [item, ...f].slice(0, 20); store.set("fav", f);
+  b.classList.toggle("on", isFav(item.h)); b.textContent = (isFav(item.h) ? "★" : "☆") + " Favourite";
+});
+const itemImg = (i, sz = 26) => i ? `<img src="${DD}${S.idx.dd.ver}/img/item/${i}.png" width="${sz}" height="${sz}" title="${esc(S.idx.dd.items[i] || "Item " + i)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'ph'}))">` : `<div class="ph"></div>`;
+const spellImg = (s, sz = 22) => `<img src="${DD}${S.idx.dd.ver}/img/spell/Summoner${s}.png" width="${sz}" height="${sz}" style="border-radius:5px" title="${esc(SPELL[s] || s)}" alt="" loading="lazy">`;
+const runeImg = (id, sz = 22, extra = "") => { const r = S.idx.dd.runes[id]; return r ? `<img src="${DD}img/${r[1]}" width="${sz}" height="${sz}" title="${esc(r[0])}" alt="" loading="lazy" style="${extra}">` : ""; };
+const SPELL = { Dot: "Ignite", Haste: "Ghost", Boost: "Cleanse", Flash: "Flash", Teleport: "Teleport", Smite: "Smite", Heal: "Heal", Barrier: "Barrier", Exhaust: "Exhaust" };
+const TRINKETS = new Set([3340, 3363, 3364, 3330, 3513]);
+const ROLES = ["top", "jungle", "mid", "adc", "support"];
+const RL = { top: "TOP", jungle: "JGL", mid: "MID", adc: "BOT", support: "SUP" };
+const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
+const f1 = (x) => (Number.isFinite(x) ? x.toFixed(1) : "–");
+const f2 = (x) => (Number.isFinite(x) ? x.toFixed(2) : "–");
+const kfmt = (n) => (n == null ? "–" : n >= 1000 ? (n / 1000).toFixed(1) + "k" : String(n));
+const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+const kdaR = (k, d, a) => (d ? (k + a) / d : k + a);
+const kdaCls = (r) => (r >= 5 ? "kda-hi" : r >= 3 ? "kda-mid" : "");
+const wrCls = (w) => (w >= 60 ? "wr-hi" : w < 45 ? "faint" : "");
+function ago(dt) {
+  if (!dt) return "";
+  const days = Math.round((Date.parse(S.idx.built) - Date.parse(dt)) / 864e5);
+  return days <= 0 ? "Latest day" : days === 1 ? "1 day ago" : days < 31 ? `${days} days ago` : new Date(dt).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+// ---------------- scope (league / tournament filter)
+const inScope = (t) => !S.scope || (S.scope.startsWith("t:") ? S.scope.slice(2) === t : S.tours[t] && "lg:" + S.tours[t].lg === S.scope);
+const scopeName = () => (!S.scope ? "All of 2026" : S.scope.startsWith("t:") ? S.tours[S.scope.slice(2)]?.n : S.scope.slice(3));
+function buildScope() {
+  const lgs = {}; for (const t of S.idx.tours) (lgs[t.lg] ||= []).push(t);
+  const order = Object.entries(lgs).sort((a, b) => b[1].reduce((s, t) => s + t.g, 0) - a[1].reduce((s, t) => s + t.g, 0));
+  let h = `<option value="">All of 2026</option><optgroup label="Leagues">`;
+  for (const [lg, ts] of order) h += `<option value="lg:${esc(lg)}">${esc(lg)} (${ts.reduce((s, t) => s + t.g, 0)})</option>`;
+  h += `</optgroup><optgroup label="Tournaments">`;
+  for (const t of S.idx.tours) h += `<option value="t:${t.s}">${esc(t.n)}</option>`;
+  $("#scope").innerHTML = h + "</optgroup>";
+  $("#scope").onchange = (e) => { S.scope = e.target.value; const [p] = location.hash.split("?"); location.hash = p + (S.scope ? "?s=" + encodeURIComponent(S.scope) : ""); };
+}
+const scopeQ = () => (S.scope ? "?s=" + encodeURIComponent(S.scope) : "");
+const link = (path) => "#/" + path + scopeQ();
+const pLink = (id, n) => `<a href="${link("player/" + id)}">${esc(n)}</a>`;
+const tLink = (id, n, sz = 0) => sz ? `<a class="tl" href="${link("team/" + id)}">${tLogo(id, sz)}<span>${esc(n)}</span></a>` : `<a href="${link("team/" + id)}">${esc(n)}</a>`;
+const gLink = (t, g) => link(`game/${t}/${g}`);
+
+// ---------------- generic sortable table
+function table(el, cols, rows, opts = {}) {
+  const st = { sort: opts.sort || null, dir: opts.dir ?? -1, n: opts.page || 50 };
+  const draw = () => {
+    const col = cols.find((c) => c.k === st.sort);
+    const sorted = col ? rows.slice().sort((a, b) => { const x = col.v ? col.v(a) : a[col.k], y = col.v ? col.v(b) : b[col.k]; return (x > y ? 1 : x < y ? -1 : 0) * st.dir; }) : rows;
+    const head = cols.map((c) => `<th class="${c.v || c.sortable ? "s" : ""} ${c.num ? "n" : ""} ${c.cls || ""} ${st.sort === c.k ? "on" : ""}" data-k="${c.k}">${c.h}${st.sort === c.k ? (st.dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("");
+    const body = sorted.slice(0, st.n).map((r, i) => `<tr>${cols.map((c) => `<td class="${c.num ? "n" : ""} ${c.cls || ""}">${c.f(r, i)}</td>`).join("")}</tr>`).join("");
+    el.innerHTML = rows.length ? `<div class="scroll"><table class="tbl"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${sorted.length > st.n ? `<button class="more">Show more (${sorted.length - st.n} left)</button>` : ""}` : `<div class="empty">${opts.empty || "Nothing here for this filter."}</div>`;
+    el.querySelectorAll("th.s").forEach((th) => (th.onclick = () => { const k = th.dataset.k; st.dir = st.sort === k ? -st.dir : -1; st.sort = k; draw(); }));
+    const m = el.querySelector(".more"); if (m) m.onclick = () => { st.n += 100; draw(); };
+  };
+  draw();
+}
+
+// ---------------- aggregates
+function agg(rows) {
+  const a = { g: rows.length, w: 0, k: 0, d: 0, a: 0, cs: 0, sec: 0, dmg: 0, gold: 0, kp: 0, kpn: 0, gd: 0, gdn: 0, vs: 0 };
+  for (const r of rows) {
+    a.w += r.w; a.k += r.k || 0; a.d += r.d || 0; a.a += r.a || 0; a.cs += r.cs || 0; a.sec += r.len; a.dmg += r.dmg || 0; a.gold += r.gold || 0; a.vs += r.vs || 0;
+    if (r.kp != null) { a.kp += r.kp; a.kpn++; } if (r.gd15 != null) { a.gd += r.gd15; a.gdn++; }
+  }
+  const m = a.sec / 60 || 1;
+  return Object.assign(a, { wr: pct(a.w, a.g), kda: kdaR(a.k, a.d, a.a), csm: a.cs / m, dpm: a.dmg / m, gpm: a.gold / m, kpa: a.kpn ? a.kp / a.kpn : NaN, gd15: a.gdn ? a.gd / a.gdn : NaN, vsm: a.vs / m });
+}
+const groupBy = (rows, key) => { const m = new Map(); for (const r of rows) { const k = typeof key === "function" ? key(r) : r[key]; if (!m.has(k)) m.set(k, []); m.get(k).push(r); } return m; };
+function donut(wr) { return `<div class="donut" style="background:conic-gradient(var(--win) 0 ${wr}%, var(--loss) ${wr}% 100%)"><span>${wr}%</span></div>`; }
+const scopeGames = () => S.idx.tours.filter((t) => inScope(t.s)).reduce((s, t) => s + t.g, 0);
+
+// ---------------- match history row (shared by player + champion pages)
+function mhRow(r, opts = {}) {
+  const items = r.it.filter((i) => !TRINKETS.has(i)), trinket = r.it.find((i) => TRINKETS.has(i));
+  while (items.length < 6) items.push(0);
+  const ratio = kdaR(r.k || 0, r.d || 0, r.a || 0), m = r.len / 60;
+  const who = opts.showPlayer ? `<div><a class="tn" href="${link("player/" + r.p)}"><b>${esc(r.pn)}</b></a><span class="faint">· ${esc(r.tn)}</span></div>` : `<div><span class="role">${RL[r.r] || ""}</span>${tLink(r.tm, r.tn)}</div>`;
+  return `<div class="mh ${r.w ? "w" : "l"}" data-t="${r.t}" data-g="${r.g}" data-p="${r.p ?? ""}">
+    <div class="meta"><span class="res">${r.w ? "Victory" : "Defeat"}</span><span class="tr" title="${esc(S.tours[r.t]?.n)}">${esc(S.tours[r.t]?.lg || "")}</span><span>${ago(r.dt)}</span><span>${mmss(r.len)} · ${esc(r.pa || "")}</span></div>
+    <div class="champ">${champImg(r.c, 48)}<div class="col">${(r.sp || []).map((s) => spellImg(s)).join("")}</div><div class="col">${runeImg(r.ks, 24, "background:#000;border-radius:50%")}${runeImg(r.sub, 18, "margin:2px")}</div></div>
+    <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.lvl ? `<span>Level ${r.lvl}</span>` : ""}</div>
+    <div class="st"><span>CS ${r.cs} (${f1(r.cs / m)})</span><span>KP ${r.kp != null ? Math.round(r.kp) + "%" : "–"}</span><span>DMG ${kfmt(r.dmg)}</span><span>GD@15 <b class="${r.gd15 > 0 ? "good" : r.gd15 < 0 ? "bad" : ""}">${r.gd15 > 0 ? "+" : ""}${r.gd15 ?? "–"}</b></span></div>
+    <div class="items">${items.slice(0, 6).map((i) => itemImg(i)).join("")}${itemImg(trinket)}</div>
+    <div class="vs">${who}<div><span class="faint">vs</span>${r.oc ? champImg(r.oc, 18, "ci r") : ""}${tLink(r.op, r.on, 16)}</div></div>
+    <button class="xbtn" title="Full scoreboard" aria-label="Show full scoreboard">▾</button>
+  </div>`;
+}
+function wireMh(el, focusPid) {
+  el.querySelectorAll(".mh .xbtn").forEach((b) => (b.onclick = async () => {
+    const row = b.closest(".mh"), next = row.nextElementSibling;
+    if (next && next.classList.contains("detail")) { next.remove(); b.textContent = "▾"; return; }
+    const d = document.createElement("div"); d.className = "detail"; d.innerHTML = `<div class="loading">Loading game…</div>`; row.after(d); b.textContent = "▴";
+    const shard = await J(`g/${row.dataset.t}.json`); d.innerHTML = scoreboard(shard[row.dataset.g], +row.dataset.p || focusPid) + `<div style="padding:8px 14px;text-align:right"><a class="pill" href="${gLink(row.dataset.t, row.dataset.g)}">Open game page →</a></div>`;
+  }));
+}
+
+// ---------------- scoreboard
+function scoreboard(g, focus) {
+  const maxD = Math.max(...g.players.map((p) => p.st?.dmg || 0), 1);
+  return `<div class="sb">${g.teams.map((t, side) => {
+    const ps = g.players.filter((p) => p.side === side);
+    const drakes = t.dr ?? t.obj.filter((o) => /Drake|dragon/i.test(o)).length;
+    return `<div class="sbh ${side ? "r" : "b"}"><span class="res">${t.win ? "Victory" : "Defeat"}</span><b>${tLink(t.id, t.name, 22)}</b><span class="muted">${side ? "Red side" : "Blue side"}</span>
+      <div class="obj"><span>⚔ ${t.k}</span><span>🗼 ${t.tw}</span><span>🐉 ${drakes}</span><span>Baron ${t.bn}</span><span>${kfmt(t.gold)} gold</span><span class="bans">Bans ${t.bi.map((c) => champImg(c, 20)).join("")}</span></div></div>
+      <div class="scroll"><table class="tbl sbt"><tbody>${ps.map((p) => {
+        const items = p.it.filter((i) => !TRINKETS.has(i)), tr = p.it.find((i) => TRINKETS.has(i)); while (items.length < 6) items.push(0);
+        const st = p.st || {}, m = g.len / 60;
+        return `<tr class="${p.pid === focus ? "me" : ""}"><td><div class="who">${champImg(p.ci, 34)}<div style="display:grid;gap:2px">${(p.sp || []).map((s) => spellImg(s, 16)).join("")}</div><div style="display:grid;gap:2px">${runeImg(p.ks, 16)}${runeImg(p.sub, 14)}</div>
+          <div><a class="pn" href="${link("player/" + p.pid)}">${esc(p.n)}</a><div class="role">${RL[p.role] || ""}</div></div></div></td>
+          <td><b>${p.k}/${p.d}/${p.a}</b><div class="faint" style="font-size:12px">${p.d ? f2(kdaR(p.k, p.d, p.a)) : "Perfect"} KDA · KP ${st.kp != null ? Math.round(st.kp) + "%" : "–"}</div></td>
+          <td class="hide-s">${kfmt(st.dmg)}<div class="dbar"><i style="width:${(100 * (st.dmg || 0)) / maxD}%"></i></div></td>
+          <td class="hide-s">${kfmt(st.gold)}<div class="faint" style="font-size:12px">gold</div></td>
+          <td>${p.cs}<div class="faint" style="font-size:12px">${f1(p.cs / m)}/m</div></td>
+          <td class="hide-s">${st.vs != null ? Math.round(st.vs) : "–"}<div class="faint" style="font-size:12px">vision</div></td>
+          <td><div class="items">${items.slice(0, 6).map((i) => itemImg(i, 24)).join("")}${itemImg(tr, 24)}</div></td></tr>`;
+      }).join("")}</tbody></table></div>`;
+  }).join("")}</div>`;
+}
+
+// ---------------- pages
+const app = () => $("#app");
+const page = (h) => (app().innerHTML = h);
+
+async function home() {
+  const ng = scopeGames();
+  const recent = S.idx.recent.filter((g) => inScope(g.t)).slice(0, 14);
+  const champs = S.idx.champs.map((c) => { let p = 0, w = 0, b = 0; for (const [t, v] of Object.entries(c.by)) if (inScope(t)) { p += v[0]; w += v[1]; b += v[2]; } return { c: c.c, p, w, b, pr: pct(p + b, ng) }; })
+    .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr).slice(0, 12);
+  const pl = S.idx.players.map((p) => ({ p, s: sumBy(p.by) })).filter((x) => x.s[0] >= Math.min(15, Math.max(5, ng / 120))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
+  const lgs = {}; for (const t of S.idx.tours) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
+  page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>RIFT LEDGER</div>
+    <div class="tag">Every pro League of Legends game of 2026 — match histories, builds and stats.</div>
+    <div class="bigsearch search"><div class="lg"><label for="hscope">Region</label><select id="hscope">${$("#scope").innerHTML.replace(">All of 2026<", ">All<")}</select></div><span class="div"></span>
+      <div class="q"><label for="hq">Search</label><input id="hq" placeholder="Pro player, team or champion" autocomplete="off"></div>
+      <button id="hgo" aria-label="Search">.GG</button><div class="sugg" id="hsugg" hidden></div></div>
+    <div class="chips">${Object.entries(lgs).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([lg, n]) => `<a class="chip ${S.scope === "lg:" + lg ? "on" : ""}" href="#/${"?s=" + encodeURIComponent("lg:" + lg)}">${esc(lg)} <span class="faint">${n}</span></a>`).join("")}${S.scope ? `<a class="chip" href="#/">Clear filter ✕</a>` : ""}</div>
+    <div class="counts"><b>${S.idx.n.toLocaleString()}</b> games · <b>${S.idx.players.length.toLocaleString()}</b> players · <b>${S.idx.tours.length}</b> tournaments · <b>${Object.keys(lgs).length}</b> leagues · patch <b>${S.idx.patches[0] || ""}</b></div></section>
+    <div class="grid2b"><div class="card"><h3>Latest games <span class="sp faint">${esc(scopeName())}</span></h3><div class="gl">${recent.map(gameLine).join("") || `<div class="empty">No games.</div>`}</div></div>
+    <div class="stack"><div class="card"><h3>Champion meta <span class="sp faint">presence · ${ng.toLocaleString()} games</span></h3><div id="hc"></div></div>
+    <div class="card"><h3>Best KDA <span class="sp faint">${esc(scopeName())}</span></h3><div id="hp"></div></div></div></div>`);
+  table($("#hc"), [
+    { k: "c", h: "Champion", f: (r) => `<a class="who" href="${link("champion/" + r.c)}">${champImg(r.c, 28)}<b>${esc(cname(r.c))}</b></a>` },
+    { k: "pr", h: "Presence", num: 1, f: (r) => `<b>${r.pr}%</b>` },
+    { k: "p", h: "Picks", num: 1, f: (r) => r.p }, { k: "b", h: "Bans", num: 1, f: (r) => r.b },
+    { k: "wr", h: "Win", num: 1, f: (r) => `<span class="${wrCls(pct(r.w, r.p))}">${r.p ? pct(r.w, r.p) + "%" : "–"}</span>` },
+  ], champs, { page: 12 });
+  table($("#hp"), [
+    { k: "n", h: "Player", f: (x) => `<div class="who">${pPhoto(x.p, 26)}<div><a href="${link("player/" + x.p.id)}"><b>${esc(x.p.n)}</b></a> <span class="faint">${esc(x.p.tn)}</span></div></div>` },
+    { k: "r", h: "Role", f: (x) => `<span class="role">${RL[x.p.r]}</span>` },
+    { k: "g", h: "Games", num: 1, f: (x) => x.s[0] },
+    { k: "kda", h: "KDA", num: 1, f: (x) => { const r = kdaR(x.s[2], x.s[3], x.s[4]); return `<b class="${kdaCls(r)}">${f2(r)}</b>`; } },
+  ], pl, { page: 10 });
+  $("#hscope").value = S.scope;
+  $("#hscope").onchange = (e) => { location.hash = "#/" + (e.target.value ? "?s=" + encodeURIComponent(e.target.value) : ""); };
+  $("#hgo").onclick = wireSearch($("#hq"), $("#hsugg"));
+}
+const sumBy = (by) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (inScope(t)) v.forEach((x, i) => (s[i] += x)); return s; };
+function gameLine(g) {
+  const [a, b] = g.tm;
+  return `<a href="${gLink(g.t, g.g)}"><div class="side">${tLogo(a[0], 22)}<span class="tn ${a[2] ? "w" : "l"}">${esc(a[1])}</span><div class="mini">${a[4].map((c) => champImg(c, 20)).join("")}</div></div>
+    <div class="mid"><b>${a[3]} – ${b[3]}</b>${mmss(g.len)}</div>
+    <div class="side r">${tLogo(b[0], 22)}<span class="tn ${b[2] ? "w" : "l"}">${esc(b[1])}</span><div class="mini">${b[4].map((c) => champImg(c, 20)).join("")}</div></div>
+    <div class="meta"><span>${esc(S.tours[g.t]?.n || "")} · ${esc(g.st || "")}</span><span>${ago(g.dt)}</span></div></a>`;
+}
+
+function playersPage(q) {
+  const role = q.get("role") || "";
+  const ng = scopeGames(), minG = +(q.get("min") ?? (ng > 2000 ? 10 : 3));
+  const rows = S.idx.players.map((p) => { const s = sumBy(p.by); return { p, n: p.n, r: p.r, g: s[0], w: s[1], wr: pct(s[1], s[0]), kda: kdaR(s[2], s[3], s[4]), k: s[2] / s[0], d: s[3] / s[0], a: s[4] / s[0], csm: s[5] / (s[6] / 60 || 1) }; })
+    .filter((x) => x.g >= Math.max(1, minG) && (!role || x.r === role));
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Players</h1><span class="sp muted">${esc(scopeName())} · ${rows.length} players</span></div>
+    <div class="chips" style="margin-bottom:12px">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="#/players?${new URLSearchParams({ ...(r && { role: r }), ...(S.scope && { s: S.scope }), min: minG })}">${r ? RL[r] : "All roles"}</a>`).join("")}
+    <span class="pill" style="margin-left:auto">Min games <select id="ming" style="background:none;border:0">${[1, 3, 5, 10, 20, 40].map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
+    <div class="card" id="pt"></div>`);
+  $("#ming").onchange = (e) => { const p = new URLSearchParams(q); p.set("min", e.target.value); location.hash = "#/players?" + p; };
+  table($("#pt"), [
+    { k: "i", h: "#", f: (x, i) => `<span class="faint">${i + 1}</span>` },
+    { k: "n", h: "Player", v: (x) => x.n.toLowerCase(), f: (x) => `<div class="who">${pPhoto(x.p, 30)}<div><a href="${link("player/" + x.p.id)}"><b>${esc(x.n)}</b></a><div class="faint" style="font-size:12px">${esc(x.p.tn)}</div></div></div>` },
+    { k: "r", h: "Role", v: (x) => ROLES.indexOf(x.r), f: (x) => `<span class="role">${RL[x.r]}</span>` },
+    { k: "lg", h: "League", cls: "hide-s", v: (x) => x.p.lg, f: (x) => `<span class="muted">${esc(x.p.lg)}</span>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g },
+    { k: "wr", h: "Win %", num: 1, v: (x) => x.wr, f: (x) => `<span class="${wrCls(x.wr)}">${x.wr}%</span> <span class="faint hide-s">${x.w}W ${x.g - x.w}L</span>` },
+    { k: "kda", h: "KDA", num: 1, v: (x) => x.kda, f: (x) => `<b class="${kdaCls(x.kda)}">${f2(x.kda)}</b>` },
+    { k: "kk", h: "K / D / A", num: 1, cls: "hide-s", v: (x) => x.k, f: (x) => `${f1(x.k)} / ${f1(x.d)} / ${f1(x.a)}` },
+    { k: "csm", h: "CS/min", num: 1, cls: "hide-s", v: (x) => x.csm, f: (x) => f1(x.csm) },
+    { k: "top", h: "Most played", cls: "hide-s", f: (x) => `<div class="mini">${x.p.top.map((c) => champImg(c, 24)).join("")}</div>` },
+  ], rows, { sort: "g" });
+}
+
+async function champsPage(q) {
+  const meta = await J("meta.json");
+  const role = q.get("role") || "", pa = q.get("pa") || "";
+  const ri = role ? meta.roles.indexOf(role) : -1;
+  const okT = (ti) => inScope(meta.tours[ti]), okP = (pi) => !pa || meta.patches[pi] === pa;
+  const ng = meta.g.reduce((n, [ti, pi, g]) => n + (okT(ti) && okP(pi) ? g : 0), 0);
+  const ch = new Map(), get = (c) => ch.get(c) || (ch.set(c, { c, p: 0, w: 0, b: 0, all: 0, byRole: [0, 0, 0, 0, 0] }), ch.get(c));
+  for (const [c, ti, pi, r, pk, w] of meta.p) if (okT(ti) && okP(pi)) { const x = get(c); x.all += pk; x.byRole[r] += pk; if (ri < 0 || r === ri) { x.p += pk; x.w += w; } }
+  for (const [c, ti, pi, v] of meta.b) if (okT(ti) && okP(pi)) get(c).b += v;
+  let rows = [...ch.values()].map((x) => {
+    const share = ri < 0 ? 1 : x.all ? x.byRole[ri] / x.all : 0;  // bans have no role: split them by the champion's role mix
+    const b = x.b * share, pres = (x.p + b) / (ng || 1), wrA = (x.w + 5) / (x.p + 10);
+    return { ...x, bb: b, pr: 100 * pres, pkr: (100 * x.p) / (ng || 1), bnr: (100 * b) / (ng || 1), wr: x.p ? (100 * x.w) / x.p : -1, mr: x.byRole.indexOf(Math.max(...x.byRole)), score: 100 * pres + (wrA - 0.5) * 40 };
+  }).filter((x) => x.p + x.bb >= 0.5);
+  rows.sort((x, y) => y.score - x.score);
+  const cut = [0.06, 0.2, 0.45, 0.75];
+  rows.forEach((x, i) => { const f = i / rows.length; x.rank = i + 1; x.tier = f < cut[0] ? 0 : f < cut[1] ? 1 : f < cut[2] ? 2 : f < cut[3] ? 3 : 4; });
+  const patches = meta.patches.filter((x, pi) => x && meta.g.some(([ti, p2]) => p2 === pi && okT(ti))).sort((x, y) => cmpPatch(y, x));
+  const qs = (o) => "#/champions?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, ...o }).filter(([, v]) => v)));
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Champion tier list</h1><span class="sp muted">${esc(scopeName())}${pa ? " · patch " + esc(pa) : ""} · ${ng.toLocaleString()} games</span></div>
+    <div class="chips" style="margin-bottom:12px;align-items:center">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${r ? RL[r] : "All roles"}</a>`).join("")}
+      <select class="fsel" id="tpa" style="margin-left:auto"><option value="">All patches</option>${patches.map((x) => `<option ${x === pa ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+    <div class="card" id="ct"></div><p class="faint" style="font-size:12px">Tier = presence (picks + bans) with a small, sample-size-damped win-rate adjustment; S is the top 6%, then A 14%, B 25%, C 30%, D the rest.</p>`);
+  $("#tpa").onchange = (e) => { location.hash = qs({ pa: e.target.value }); };
+  table($("#ct"), [
+    { k: "rank", h: "#", v: (x) => -x.rank, f: (x) => `<span class="faint">${x.rank}</span>` },
+    { k: "tier", h: "Tier", v: (x) => -x.tier, f: (x) => `<span class="tier t${x.tier}">${"SABCD"[x.tier]}</span>` },
+    { k: "n", h: "Champion", v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}${role ? (scopeQ() ? "&" : "?") + "role=" + role : ""}">${champImg(x.c, 32)}<b>${esc(cname(x.c))}</b>${ri < 0 ? `<span class="role">${RL[ROLES[x.mr]]}</span>` : ""}</a>` },
+    { k: "wr", h: "Win %", num: 1, v: (x) => x.wr, f: (x) => (x.p ? `<span class="${wrCls(x.wr)}">${f1(x.wr)}%</span>` : "–") },
+    { k: "pkr", h: "Pick %", num: 1, v: (x) => x.pkr, f: (x) => f1(x.pkr) + "%" },
+    { k: "bnr", h: "Ban %", num: 1, v: (x) => x.bnr, f: (x) => f1(x.bnr) + "%" },
+    { k: "pr", h: "Presence", num: 1, v: (x) => x.pr, f: (x) => `<b>${f1(x.pr)}%</b>` },
+    { k: "p", h: "Games", num: 1, cls: "hide-s", v: (x) => x.p, f: (x) => `${x.p} <span class="faint">${x.w}W ${x.p - x.w}L</span>` },
+  ], rows, { sort: "rank", dir: -1, page: 200 });
+}
+
+// ================= leaderboards (op.gg ranking, per role, pick the stat)
+const LB = {
+  kda: ["KDA", (s) => kdaR(s[2], s[3], s[4]), f2], wr: ["Win rate", (s) => (100 * s[1]) / s[0], (v) => Math.round(v) + "%"],
+  gd15: ["GD@15", (s) => (s[9] ? s[8] / s[9] : NaN), (v) => (v > 0 ? "+" : "") + Math.round(v)], dpm: ["Damage / min", (s) => s[7] / (s[6] / 60), (v) => Math.round(v)],
+  csm: ["CS / min", (s) => s[5] / (s[6] / 60), f1], kp: ["Kill participation", (s) => (s[11] ? s[10] / s[11] : NaN), (v) => Math.round(v) + "%"],
+  vspm: ["Vision / min", (s) => s[12] / (s[6] / 60), f2], gpm: ["Gold / min", (s) => s[13] / (s[6] / 60), (v) => Math.round(v)],
+};
+function leaderPage(q) {
+  const role = q.get("role") || "mid", stat = LB[q.get("stat")] ? q.get("stat") : "kda";
+  const ng = scopeGames(), minG = +(q.get("min") ?? (ng > 2000 ? 15 : 5));
+  const [lbl, fn, fmt] = LB[stat];
+  const rows = S.idx.players.filter((p) => p.r === role).map((p) => { const s = sumBy(p.by); return { p, g: s[0], v: s[0] ? fn(s) : NaN, s }; })
+    .filter((x) => x.g >= minG && Number.isFinite(x.v)).sort((a, b) => b.v - a.v);
+  const qs = (o) => "#/leaderboard?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, stat, min: minG, s: S.scope, ...o }).filter(([, v]) => v !== "" && v != null)));
+  const pod = rows.slice(0, 3);
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Leaderboards</h1><span class="sp muted">${esc(scopeName())} · ${RL[role]} · min ${minG} games</span></div>
+    <div class="chips" style="margin-bottom:10px;align-items:center">${ROLES.map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${RL[r]}</a>`).join("")}
+      <span class="pill" style="margin-left:auto">Min games <select id="lbm" style="background:none;border:0">${[3, 5, 10, 15, 25, 40].map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
+    <div class="chips" style="margin-bottom:16px">${Object.entries(LB).map(([k, [l]]) => `<a class="chip ${k === stat ? "on" : ""}" href="${qs({ stat: k })}">${l}</a>`).join("")}</div>
+    <div class="podium">${[1, 0, 2].map((i) => pod[i] ? `<a class="pod p${i}" href="${link("player/" + pod[i].p.id)}"><span class="pos">${i + 1}</span>${pPhoto(pod[i].p, i ? 72 : 92)}<b>${esc(pod[i].p.n)}</b><span class="tl">${tLogo(pod[i].p.tm, 16)}<span class="faint">${esc(pod[i].p.tn)}</span></span><em>${fmt(pod[i].v)}</em><small class="faint">${lbl} · ${pod[i].g} games</small></a>` : "").join("")}</div>
+    <div class="card" id="lbt"></div>`);
+  $("#lbm").onchange = (e) => { location.hash = qs({ min: e.target.value }); };
+  table($("#lbt"), [
+    { k: "i", h: "#", f: (x, i) => `<span class="faint">${i + 1}</span>` },
+    { k: "n", h: "Player", f: (x) => `<a class="who" href="${link("player/" + x.p.id)}">${pPhoto(x.p, 28)}<div><b>${esc(x.p.n)}</b><div class="faint" style="font-size:12px">${esc(x.p.tn)} · ${esc(x.p.lg)}</div></div></a>` },
+    { k: "v", h: lbl, num: 1, f: (x) => `<b>${fmt(x.v)}</b>` },
+    { k: "g", h: "Games", num: 1, f: (x) => x.g },
+    { k: "wr", h: "Win %", num: 1, cls: "hide-s", f: (x) => `${pct(x.s[1], x.s[0])}%` },
+    { k: "kda", h: "KDA", num: 1, cls: "hide-s", f: (x) => f2(kdaR(x.s[2], x.s[3], x.s[4])) },
+    { k: "top", h: "Most played", cls: "hide-s", f: (x) => `<div class="mini">${x.p.top.map((c) => champImg(c, 22)).join("")}</div>` },
+  ], rows, { page: 100 });
+}
+
+// ================= head-to-head
+async function h2hPage(kind, a, b) {
+  if (kind !== "team" && kind !== "player") { [kind, a, b] = ["player", kind, a]; }
+  if (kind === "team") return h2hTeam(a, b);
+  const [pa, pb] = await Promise.all([J(`p/${a}.json`), J(`p/${b}.json`)]);
+  const rows = pa.rows.filter((r) => r.opp == b && inScope(r.t)), theirs = new Map(pb.rows.map((r) => [r.g, r]));
+  const ra = agg(rows), rb = agg(rows.map((r) => theirs.get(r.g)).filter(Boolean));
+  const A = S.players[a] || { n: pa.n }, B = S.players[b] || { n: pb.n };
+  const line = (lbl, x, y, fmt = f1, hi = 1) => `<tr><td class="n ${x * hi > y * hi ? "good" : ""}">${fmt(x)}</td><td class="muted" style="text-align:center">${lbl}</td><td class="${y * hi > x * hi ? "good" : ""}">${fmt(y)}</td></tr>`;
+  page(`<div class="card"><div class="h2h"><a href="${link("player/" + a)}">${pPhoto(A, 72)}<h1>${esc(A.n)}</h1><span class="faint">${esc(A.tn || "")}</span></a>
+      <div class="mid"><div class="sc">${ra.w} <span class="faint">–</span> ${ra.g - ra.w}</div><span class="faint">${rows.length} lane matchups · ${esc(scopeName())}</span></div>
+      <a href="${link("player/" + b)}">${pPhoto(B, 72)}<h1>${esc(B.n)}</h1><span class="faint">${esc(B.tn || "")}</span></a></div>
+    ${rows.length ? `<table class="tbl cmp"><tbody>${line("KDA", ra.kda, rb.kda, f2)}${line("Kills / game", ra.k / ra.g, rb.k / (rb.g || 1))}${line("Deaths / game", ra.d / ra.g, rb.d / (rb.g || 1), f1, -1)}
+      ${line("CS / min", ra.csm, rb.csm)}${line("Damage / min", ra.dpm, rb.dpm, Math.round)}${line("Gold diff @15", ra.gd15, rb.gd15, (v) => (Number.isFinite(v) ? Math.round(v) : "–"))}${line("Kill participation", ra.kpa, rb.kpa, (v) => (Number.isFinite(v) ? Math.round(v) + "%" : "–"))}</tbody></table>` : ""}</div>
+    <div class="card" style="margin-top:16px"><h3>Games <span class="sp faint">${esc(A.n)}'s side</span></h3><div class="mhs" id="mh"></div></div>`);
+  mhList($("#mh"), rows, { focus: +a });
+}
+async function h2hTeam(a, b) {
+  const d = await J(`t/${a}.json`);
+  const rows = d.rows.filter((r) => r.op == b && inScope(r.t)), w = rows.reduce((s, r) => s + r.w, 0);
+  const A = S.teams[a] || { n: d.n }, B = S.teams[b] || { n: rows[0]?.on || "" };
+  const picks = (key) => { const m = new Map(); for (const r of rows) for (const c of r[key]) m.set(c, (m.get(c) || 0) + 1); return [...m].sort((x, y) => y[1] - x[1]).slice(0, 8).map(([c, n]) => `<span class="pc">${champImg(c, 28)}<small>${n}</small></span>`).join(""); };
+  page(`<div class="card"><div class="h2h"><a href="${link("team/" + a)}">${tLogo(a, 72)}<h1>${esc(A.n)}</h1></a>
+      <div class="mid"><div class="sc">${w} <span class="faint">–</span> ${rows.length - w}</div><span class="faint">${rows.length} games · ${esc(scopeName())}</span></div>
+      <a href="${link("team/" + b)}">${tLogo(b, 72)}<h1>${esc(B.n)}</h1></a></div>
+    ${rows.length ? `<table class="tbl cmp"><tbody>
+      <tr><td class="n">${f1(rows.reduce((s, r) => s + r.k, 0) / rows.length)}</td><td class="muted" style="text-align:center">Kills / game</td><td>${f1(rows.reduce((s, r) => s + r.ok, 0) / rows.length)}</td></tr>
+      <tr><td class="n">${pct(rows.filter((r) => r.s === 0).reduce((s, r) => s + r.w, 0), rows.filter((r) => r.s === 0).length)}% <span class="faint">(${rows.filter((r) => r.s === 0).length})</span></td><td class="muted" style="text-align:center">Win % on blue side</td><td>${pct(rows.filter((r) => r.s === 1).reduce((s, r) => s + 1 - r.w, 0), rows.filter((r) => r.s === 1).length)}% <span class="faint">(${rows.filter((r) => r.s === 1).length})</span></td></tr>
+      <tr><td class="n"><div class="pcs" style="justify-content:flex-end">${picks("pk")}</div></td><td class="muted" style="text-align:center">Most picked</td><td><div class="pcs">${picks("opk")}</div></td></tr></tbody></table>` : `<div class="empty">No games between these teams${S.scope ? " in this filter" : ""}.</div>`}</div>
+    <div class="card" style="margin-top:16px"><h3>Games</h3><div class="gl" id="hg"></div></div>`);
+  $("#hg").innerHTML = rows.map((r) => teamGameLine(r)).join("");
+}
+function teamGameLine(r) {
+  return `<a href="${gLink(r.t, r.g)}"><div class="side"><span class="tn ${r.w ? "w" : "l"}">${r.w ? "WIN" : "LOSS"} <span class="faint">${r.s ? "red" : "blue"}</span></span><div class="mini">${r.pk.map((c) => champImg(c, 20)).join("")}</div></div>
+    <div class="mid"><b>${r.k} – ${r.ok}</b>${mmss(r.len)}</div><div class="side r"><span class="tn">${tLogo(r.op, 16)} ${esc(r.on)}</span><div class="mini">${r.opk.map((c) => champImg(c, 20)).join("")}</div></div>
+    <div class="meta"><span>${esc(S.tours[r.t]?.n || "")}</span><span>${ago(r.dt)}</span></div></a>`;
+}
+
+// ================= multi-search / compare
+function comparePage(q) {
+  const ids = (q.get("ids") || "").split(",").filter((x) => S.players[x]);
+  const names = ids.map((i) => S.players[i].n).join("\n");
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Multi-search</h1><span class="sp muted">${esc(scopeName())}</span></div>
+    <div class="card" style="padding:14px"><textarea id="msq" rows="4" placeholder="Paste pro player names, one per line or comma-separated (e.g. a whole lineup)">${esc(names)}</textarea>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px"><button class="go" id="msgo">Search</button><span class="faint" id="msn" style="font-size:12.5px"></span></div></div>
+    <div class="card" style="margin-top:16px" id="cmpo">${ids.length ? "" : `<div class="empty">Add up to 10 players to compare them side by side.</div>`}</div>`);
+  $("#msgo").onclick = () => {
+    const want = $("#msq").value.split(/[\n,]+/).map((x) => x.trim()).filter(Boolean).slice(0, 10), out = [], miss = [];
+    for (const w of want) { const l = w.toLowerCase(); const hit = S.idx.players.filter((p) => p.n.toLowerCase() === l)[0] || S.idx.players.filter((p) => p.n.toLowerCase().startsWith(l))[0]; hit ? out.push(hit.id) : miss.push(w); }
+    if (miss.length) $("#msn").textContent = "Not found: " + miss.join(", ");
+    if (out.length) location.hash = "#/compare?" + new URLSearchParams({ ids: [...new Set(out)].join(","), ...(S.scope && { s: S.scope }) });
+  };
+  if (!ids.length) return;
+  const cols = ids.map((i) => ({ p: S.players[i], s: sumBy(S.players[i].by) }));
+  const best = (vals, hi = 1) => { const ok = vals.filter(Number.isFinite); return ok.length > 1 ? Math.max(...ok.map((v) => v * hi)) * hi : NaN; };
+  const row = (lbl, fn, fmt, hi = 1) => { const vals = cols.map((c) => (c.s[0] ? fn(c.s) : NaN)), b = best(vals, hi); return `<tr><td class="muted">${lbl}</td>${vals.map((v) => `<td class="n ${v === b ? "good" : ""}">${Number.isFinite(v) ? fmt(v) : "–"}</td>`).join("")}</tr>`; };
+  $("#cmpo").innerHTML = `<div class="scroll"><table class="tbl cmpt"><thead><tr><th></th>${cols.map((c) => `<th class="n"><a class="who" style="justify-content:flex-end" href="${link("player/" + c.p.id)}"><div style="text-align:right"><b>${esc(c.p.n)}</b><div class="faint" style="font-size:12px;font-weight:400">${esc(c.p.tn)} · ${RL[c.p.r]}</div></div>${pPhoto(c.p, 40)}</a></th>`).join("")}</tr></thead><tbody>
+    ${row("Games", (s) => s[0], (v) => v)}<tr><td class="muted">Record</td>${cols.map((c) => `<td class="n">${c.s[1]}W ${c.s[0] - c.s[1]}L</td>`).join("")}</tr>
+    ${row("Win rate", LB.wr[1], LB.wr[2])}${row("KDA", LB.kda[1], LB.kda[2])}${row("Kills / game", (s) => s[2] / s[0], f1)}${row("Deaths / game", (s) => s[3] / s[0], f1, -1)}${row("Assists / game", (s) => s[4] / s[0], f1)}
+    ${row("CS / min", LB.csm[1], LB.csm[2])}${row("Gold / min", LB.gpm[1], LB.gpm[2])}${row("Damage / min", LB.dpm[1], LB.dpm[2])}${row("Gold diff @15", LB.gd15[1], LB.gd15[2])}${row("Kill participation", LB.kp[1], LB.kp[2])}${row("Vision / min", LB.vspm[1], LB.vspm[2])}
+    <tr><td class="muted">Most played</td>${cols.map((c) => `<td class="n"><div class="mini" style="justify-content:flex-end">${c.p.top.map((x) => champImg(x, 24)).join("")}</div></td>`).join("")}</tr>
+    <tr><td></td>${cols.map((c) => `<td class="n"><a class="faint" href="#/compare?${new URLSearchParams({ ids: ids.filter((i) => i != c.p.id).join(","), ...(S.scope && { s: S.scope }) })}">remove ✕</a></td>`).join("")}</tr></tbody></table></div>`;
+}
+
+function teamsPage() {
+  const rows = S.idx.teams.map((t) => { const s = [0, 0]; for (const [k, v] of Object.entries(t.by)) if (inScope(k)) { s[0] += v[0]; s[1] += v[1]; } return { t, n: t.n, g: s[0], w: s[1], wr: pct(s[1], s[0]) }; }).filter((x) => x.g > 0);
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Teams</h1><span class="sp muted">${esc(scopeName())} · ${rows.length} teams</span></div><div class="card" id="tt"></div>`);
+  table($("#tt"), [
+    { k: "n", h: "Team", v: (x) => x.n.toLowerCase(), f: (x) => tLink(x.t.id, x.n, 28) },
+    { k: "lg", h: "League", v: (x) => x.t.lg, f: (x) => `<span class="muted">${esc(x.t.lg)}</span>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g },
+    { k: "rec", h: "Record", num: 1, v: (x) => x.w, f: (x) => `${x.w}W ${x.g - x.w}L` },
+    { k: "wr", h: "Win %", num: 1, v: (x) => x.wr, f: (x) => `<span class="${wrCls(x.wr)}">${x.wr}%</span>` },
+  ], rows, { sort: "g", page: 100 });
+}
+const initials = (n) => (n.match(/[A-Z0-9]/g) || [n[0]]).slice(0, 3).join("") || n.slice(0, 2).toUpperCase();
+
+function toursPage() {
+  const lgs = groupBy(S.idx.tours, "lg");
+  const order = [...lgs].sort((a, b) => b[1].reduce((s, t) => s + t.g, 0) - a[1].reduce((s, t) => s + t.g, 0));
+  page(`<h1 style="margin-bottom:14px">Tournaments</h1><div class="grid2b">${order.map(([lg, ts]) => `<div class="card"><h3>${esc(lg)}<span class="sp faint">${ts.reduce((s, t) => s + t.g, 0)} games</span></h3>
+    <div class="scroll"><table class="tbl"><tbody>${ts.map((t) => `<tr><td><a href="#/t/${t.s}"><b>${esc(t.n)}</b></a></td><td class="muted hide-s">${esc(t.a)} → ${esc(t.b)}</td><td class="n">${t.g} games</td></tr>`).join("")}</tbody></table></div></div>`).join("")}</div>`);
+}
+
+async function playerPage(id, q) {
+  const d = await J(`p/${id}.json`), me = S.players[id] || {};
+  const tsel = q.get("tr") || "";
+  const all = d.rows.filter((r) => inScope(r.t));
+  const rows = tsel ? all.filter((r) => r.t === tsel) : all;
+  const a = agg(rows), last = d.rows[0];
+  remember({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) });
+  page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : champImg(topChamp(d.rows), 84)}</div>
+      <div><h1>${esc(d.n)}</h1><div class="sub"><span class="role">${RL[mainRole(d.rows)]}</span>${tLink(last.tm, last.tn, 20)}<span class="pill">${esc(S.tours[last.t]?.lg || "")}</span><span class="faint">${d.rows.length} games in 2026</span></div>
+      <div class="sub" style="margin-top:10px">${favBtn({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) })}<a class="star" href="#/compare?ids=${id}">⇄ Compare</a></div></div>
+      <div class="kpis">${donut(a.wr)}<div class="kpi"><b>${a.w}W ${a.g - a.w}L</b><span>${esc(tsel ? S.tours[tsel].n : scopeName())}</span></div>
+      <div class="kpi"><b class="${kdaCls(a.kda)}">${f2(a.kda)}</b><span>KDA · ${f1(a.k / (a.g || 1))}/${f1(a.d / (a.g || 1))}/${f1(a.a / (a.g || 1))}</span></div>
+      <div class="kpi"><b>${f1(a.csm)}</b><span>CS / min</span></div><div class="kpi"><b>${Number.isFinite(a.kpa) ? Math.round(a.kpa) + "%" : "–"}</b><span>Kill part.</span></div>
+      <div class="kpi"><b>${Math.round(a.dpm)}</b><span>DMG / min</span></div><div class="kpi"><b class="${a.gd15 > 0 ? "good" : a.gd15 < 0 ? "bad" : ""}">${Number.isFinite(a.gd15) ? (a.gd15 > 0 ? "+" : "") + Math.round(a.gd15) : "–"}</b><span>GD@15</span></div></div></div>
+</div>
+    <div class="grid2" style="margin-top:16px"><div class="stack">${rankCards(id, all, tsel)}<div class="card"><h3>Champion pool${tsel ? ` <span class="sp faint">${esc(S.tours[tsel].n)}</span>` : ""}</h3><div id="pool"></div></div>
+      <div class="card"><h3>Played with <span class="sp faint">teammates</span></h3><div id="pw"></div></div>
+      <div class="card"><h3>Lane opponents <span class="sp faint">head-to-head</span></h3><div id="lo"></div></div>
+      <div class="card"><h3>By role</h3><div id="proles"></div></div></div>
+    <div class="stack"><div class="card"><h3>Form <span class="sp faint">KDA per game · rolling 10-game win rate</span></h3><div id="form"></div></div>
+    <div class="card"><div class="fbar" id="mhf"></div><div id="sum20"></div><div class="mhs" id="mh"></div></div></div></div>`);
+  const pool = [...groupBy(rows, "c")].map(([c, rs]) => ({ c, ...agg(rs) }));
+  table($("#pool"), [
+    { k: "c", h: "Champion", v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}">${champImg(x.c, 28)}<b>${esc(cname(x.c))}</b></a>` },
+    { k: "g", h: "Games", num: 1, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.wr, f: (x) => `<span class="${wrCls(x.wr)}">${x.wr}%</span>` },
+    { k: "kda", h: "KDA", num: 1, v: (x) => x.kda, f: (x) => `<span class="${kdaCls(x.kda)}">${f2(x.kda)}</span>` },
+    { k: "csm", h: "CS/m", num: 1, v: (x) => x.csm, f: (x) => f1(x.csm) },
+  ].map((c) => ({ ...c, v: c.v || ((x) => x[c.k]) })), pool, { sort: "g", page: 12 });
+  // played with: teammates across these games
+  const mates = new Map(); for (const r of rows) for (const m of r.mt || []) { const x = mates.get(m) || { id: m, g: 0, w: 0 }; x.g++; x.w += r.w; mates.set(m, x); }
+  table($("#pw"), [
+    { k: "n", h: "Player", v: (x) => (S.players[x.id]?.n || "").toLowerCase(), f: (x) => `<a class="who" href="${link("player/" + x.id)}">${pPhoto(S.players[x.id], 24)}<b>${esc(S.players[x.id]?.n || x.id)}</b><span class="role">${RL[S.players[x.id]?.r] || ""}</span></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span>` },
+  ], [...mates.values()], { sort: "g", page: 8 });
+  const opps = new Map(); for (const r of rows) if (r.opp) { const x = opps.get(r.opp) || { id: r.opp, g: 0, w: 0 }; x.g++; x.w += r.w; opps.set(r.opp, x); }
+  table($("#lo"), [
+    { k: "n", h: "Opponent", v: (x) => (S.players[x.id]?.n || "").toLowerCase(), f: (x) => `<a class="who" href="#/h2h/player/${id}/${x.id}${scopeQ()}">${pPhoto(S.players[x.id], 24)}<b>${esc(S.players[x.id]?.n || x.id)}</b><span class="faint" style="font-size:12px">${esc(S.players[x.id]?.tn || "")}</span></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Won", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${x.w}–${x.g - x.w}</span>` },
+  ], [...opps.values()], { sort: "g", page: 8 });
+  const roles = [...groupBy(rows, "r")].map(([r, rs]) => ({ r, ...agg(rs) }));
+  $("#proles").innerHTML = `<div class="bars">${roles.sort((x, y) => y.g - x.g).map((x) => `<div class="row"><span class="role">${RL[x.r]}</span><div class="track"><i style="width:${(100 * x.g) / (rows.length || 1)}%"></i></div><span>${x.g} games</span><span class="${wrCls(x.wr)}">${x.wr}%</span></div>`).join("")}</div>`;
+  // match history filters (op.gg's queue/champion selects): result, champion, role
+  const f = { res: "", c: "", r: "" };
+  const champsSel = [...groupBy(rows, "c")].sort((x, y) => y[1].length - x[1].length);
+  $("#mhf").innerHTML = `<div class="seg" id="fres"><button data-v="" class="on">All</button><button data-v="1">Wins</button><button data-v="0">Losses</button></div>
+    <select class="fsel" id="fch"><option value="">All champions</option>${champsSel.map(([c, rs]) => `<option value="${c}">${esc(cname(c))} (${rs.length})</option>`).join("")}</select>
+    ${roles.length > 1 ? `<select class="fsel" id="fro"><option value="">All roles</option>${roles.map((x) => `<option value="${x.r}">${RL[x.r]}</option>`).join("")}</select>` : ""}
+    <span class="faint" id="fcount" style="margin-left:auto;font-size:12.5px"></span>`;
+  const draw = () => {
+    const fr = rows.filter((r) => (f.res === "" || r.w === +f.res) && (!f.c || r.c === f.c) && (!f.r || r.r === f.r));
+    $("#fcount").textContent = `${fr.length} games`;
+    $("#sum20").innerHTML = summary20(fr);
+    $("#form").innerHTML = formGraph(fr);
+    mhList($("#mh"), fr, { focus: +id });
+  };
+  $("#fres").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; f.res = b.dataset.v; $("#fres").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); draw(); };
+  $("#fch").onchange = (e) => { f.c = e.target.value; draw(); };
+  if ($("#fro")) $("#fro").onchange = (e) => { f.r = e.target.value; draw(); };
+  draw();
+}
+// op.gg's "recent 20 games" strip: record + KDA, top champions, role split
+function summary20(rows) {
+  const r20 = rows.slice(0, 20); if (!r20.length) return "";
+  const a = agg(r20), n = r20.length;
+  const champs = [...groupBy(r20, "c")].map(([c, rs]) => ({ c, ...agg(rs) })).sort((x, y) => y.g - x.g).slice(0, 3);
+  const roles = groupBy(r20, "r");
+  return `<div class="s20"><div class="s20a">${donut(a.wr)}<div><div class="faint" style="font-size:12px">${n}G ${a.w}W ${n - a.w}L</div>
+      <b style="font-size:15px">${f1(a.k / n)} / <span class="bad">${f1(a.d / n)}</span> / ${f1(a.a / n)}</b><div><b class="${kdaCls(a.kda)}">${f2(a.kda)}:1</b> <span class="faint">· KP ${Number.isFinite(a.kpa) ? Math.round(a.kpa) + "%" : "–"}</span></div></div></div>
+    <div class="s20c">${champs.map((x) => `<div>${champImg(x.c, 26, "ci r")}<span class="${wrCls(x.wr)}">${x.wr}%</span><span class="faint">(${x.w}W ${x.g - x.w}L)</span><b class="${kdaCls(x.kda)}">${f2(x.kda)} KDA</b></div>`).join("")}</div>
+    <div class="s20r">${ROLES.map((r) => `<div title="${RL[r]}"><i style="height:${(100 * (roles.get(r)?.length || 0)) / n}%"></i><span>${RL[r]}</span></div>`).join("")}</div></div>`;
+}
+function formGraph(rows) {
+  const gs = rows.slice(0, 60).reverse(); if (gs.length < 2) return `<div class="empty">Not enough games.</div>`;
+  const W = 720, H = 120, bw = W / gs.length;
+  const bars = gs.map((r, i) => { const k = Math.min(10, kdaR(r.k || 0, r.d || 0, r.a || 0)), h = 6 + (k / 10) * (H - 26);
+    return `<rect x="${(i * bw + 1).toFixed(1)}" y="${(H - h).toFixed(1)}" width="${Math.max(1, bw - 2).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${r.w ? "var(--win)" : "var(--loss)"}" opacity=".75"><title>${r.dt} · ${cname(r.c)} ${r.k}/${r.d}/${r.a} · ${r.w ? "Win" : "Loss"} vs ${r.on}</title></rect>`; }).join("");
+  const pts = gs.map((r, i) => { const win = gs.slice(Math.max(0, i - 9), i + 1); const wr = win.reduce((s, x) => s + x.w, 0) / win.length; return `${(i * bw + bw / 2).toFixed(1)},${(H - 6 - wr * (H - 26)).toFixed(1)}`; }).join(" ");
+  return `<div style="padding:12px 14px"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" role="img" aria-label="Form graph">
+    <line x1="0" x2="${W}" y1="${H - 6 - 0.5 * (H - 26)}" y2="${H - 6 - 0.5 * (H - 26)}" stroke="var(--line)" stroke-dasharray="4 4"/>${bars}
+    <polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
+    <div class="faint" style="display:flex;justify-content:space-between;font-size:11.5px"><span>${gs[0].dt}</span><span>dashed line = 50% win rate</span><span>${gs[gs.length - 1].dt}</span></div></div>`;
+}
+// op.gg's ranked cards + past seasons, for pros: latest tournament, season total, every 2026 tournament
+function roleRank(id, role, stat) {  // stat(p) -> [g,w,k,d,a,cs,sec] or null; rank by KDA among same-role players with enough games
+  const peers = S.idx.players.filter((p) => p.r === role).map((p) => ({ id: p.id, s: stat(p) })).filter((x) => x.s && x.s[0]);
+  const me = peers.find((x) => x.id == id); if (!me) return "";
+  const minG = Math.min(me.s[0], Math.max(1, Math.ceil(Math.max(...peers.map((x) => x.s[0])) * 0.3)));
+  const pool = peers.filter((x) => x.s[0] >= minG).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4]));
+  return `#${pool.findIndex((x) => x.id == id) + 1} of ${pool.length} ${RL[role]} by KDA`;
+}
+function rankCards(id, all, tsel) {
+  if (!all.length) return "";
+  const tours = [...groupBy(all, "t")], role = mainRole(all);
+  const tag = (t) => { const w = (S.tours[t]?.lg || "").split(/\s+/).filter((x) => !/^\d+$/.test(x)); return esc(w.length < 2 ? w[0] : /^[A-Z0-9]{2,}$/.test(w[0]) ? w[0] : w.map((x) => x[0]).join("").toUpperCase()); };
+  const box = (cls, emb, title, t, sub, rk, a) => `<div class="card rk"><h3>${title}</h3><div class="rkb"><div class="emb ${cls}">${emb}</div>
+    <div class="t"><b>${t}</b><div class="muted">${sub}</div><div class="faint">${rk}</div></div>
+    <div class="r"><b>${a.w}W ${a.g - a.w}L</b><span class="${wrCls(a.wr)}">Win rate ${a.wr}%</span><div class="faint">KDA ${f2(a.kda)}</div></div></div></div>`;
+  const [ct, crs] = tours.find(([t]) => t === tsel) || tours[0], ca = agg(crs), sa = agg(all);
+  const teams = [...new Set(all.map((r) => r.tn))];
+  return box("", tag(ct), tsel ? "Selected tournament" : "Current tournament", esc(S.tours[ct].n), tLink(crs[0].tm, crs[0].tn), roleRank(id, role, (p) => p.by[ct]), ca)
+    + (tours.length > 1 ? box("sea", "2026", `Season <b>${esc(scopeName())}</b>`, `${tours.length} tournaments`, teams.map(esc).join(" → "), roleRank(id, role, (p) => { const s = sumBy(p.by); return s[0] ? s : null; }), sa) : "")
+    + `<div class="card"><h3>Tournaments <span class="sp"><a class="faint" href="${link("player/" + id)}">${tsel ? "Show all ✕" : ""}</a></span></h3><div class="past">${tours.map(([t, rs]) => { const a = agg(rs);
+      return `<a class="${tsel === t ? "on" : ""}" href="#/player/${id}?${new URLSearchParams({ tr: t, ...(S.scope && { s: S.scope }) })}"><span class="tg">${tag(t)}</span>
+        <span class="nm"><b>${esc(S.tours[t].n)}</b><span>${esc(rs[0].tn)} · ${ago(rs[0].dt)}</span></span><span class="rec"><span>${a.w}W ${a.g - a.w}L</span><span class="${wrCls(a.wr)}">${a.wr}%</span></span></a>`; }).join("")}</div></div>`;
+}
+const topChamp = (rows) => [...groupBy(rows, "c")].sort((a, b) => b[1].length - a[1].length)[0][0];
+const mainRole = (rows) => [...groupBy(rows, "r")].sort((a, b) => b[1].length - a[1].length)[0][0];
+function mhList(el, rows, opts) {
+  let n = 20;
+  const draw = () => { el.innerHTML = rows.slice(0, n).map((r) => mhRow(r, opts)).join("") + (rows.length > n ? `<button class="more" style="border-radius:8px;border:1px solid var(--line)">Show more (${rows.length - n} left)</button>` : "") || `<div class="empty">No games for this filter.</div>`;
+    wireMh(el, opts.focus); const m = el.querySelector(".more"); if (m) m.onclick = () => { n += 30; draw(); }; };
+  draw();
+}
+
+async function teamPage(id) {
+  const d = await J(`t/${id}.json`);
+  const rows = d.rows.filter((r) => inScope(r.t));
+  const w = rows.reduce((s, r) => s + r.w, 0), wr = pct(w, rows.length);
+  const roster = new Map(); for (const r of rows) for (const [pid, n, role] of r.ro) { const x = roster.get(pid) || { pid, n, role, g: 0, w: 0, last: r.dt }; x.g++; x.w += r.w; roster.set(pid, x); }
+  const picks = new Map(), bans = new Map(); for (const r of rows) { for (const c of r.pk) { const x = picks.get(c) || { c, g: 0, w: 0 }; x.g++; x.w += r.w; picks.set(c, x); } for (const c of r.bn) bans.set(c, (bans.get(c) || 0) + 1); }
+  const blue = rows.filter((r) => r.s === 0), red = rows.filter((r) => r.s === 1);
+  const avgLen = rows.reduce((s, r) => s + r.len, 0) / (rows.length || 1);
+  const fav = { h: "#/team/" + id, n: d.n, k: "Team · " + (S.teams[id]?.lg || ""), img: tLogo(id, 24) };
+  remember(fav);
+  const opps = new Map(); for (const r of rows) { const x = opps.get(r.op) || { id: r.op, n: r.on, g: 0, w: 0 }; x.g++; x.w += r.w; opps.set(r.op, x); }
+  page(`<div class="card"><div class="prof"><div class="avatar" style="background:#0b0d11">${S.teams[id]?.lo ? tLogo(id, 70) : esc(initials(d.n))}</div><div><h1>${esc(d.n)}</h1><div class="sub"><span class="pill">${esc(S.teams[id]?.lg || "")}</span><span class="faint">${esc(scopeName())}</span></div><div class="sub" style="margin-top:10px">${favBtn(fav)}</div></div>
+    <div class="kpis">${donut(wr)}<div class="kpi"><b>${w}W ${rows.length - w}L</b><span>record</span></div><div class="kpi"><b>${pct(blue.reduce((s, r) => s + r.w, 0), blue.length)}%</b><span>blue side · ${blue.length}</span></div>
+    <div class="kpi"><b>${pct(red.reduce((s, r) => s + r.w, 0), red.length)}%</b><span>red side · ${red.length}</span></div><div class="kpi"><b>${mmss(Math.round(avgLen))}</b><span>avg length</span></div></div></div></div>
+    <div class="grid2" style="margin-top:16px"><div class="stack"><div class="card"><h3>Roster</h3><div id="ro"></div></div><div class="card"><h3>Most picked</h3><div id="tp"></div></div>
+      <div class="card"><h3>Head-to-head</h3><div id="th2h"></div></div>
+      <div class="card"><h3>Most banned (by them)</h3><div class="iteml">${[...bans].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `<a class="row" href="${link("champion/" + c)}">${champImg(c, 26)}<span>${esc(cname(c))}</span><span class="n">${n}</span><span class="faint">${pct(n, rows.length)}%</span></a>`).join("")}</div></div></div>
+    <div class="card"><h3>Games <span class="sp faint">${rows.length}</span></h3><div class="gl" id="tg"></div></div></div>`);
+  table($("#ro"), [
+    { k: "n", h: "Player", v: (x) => ROLES.indexOf(x.role), f: (x) => `<a class="who" href="${link("player/" + x.pid)}"><span class="role" style="width:30px">${RL[x.role]}</span>${pPhoto(S.players[x.pid], 26)}<b>${esc(x.n)}</b></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.w / x.g, f: (x) => pct(x.w, x.g) + "%" },
+  ], [...roster.values()], { sort: "n", dir: 1, page: 20 });
+  table($("#tp"), [
+    { k: "c", h: "Champion", v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}">${champImg(x.c, 26)}<b>${esc(cname(x.c))}</b></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span>` },
+  ], [...picks.values()], { sort: "g", page: 10 });
+  table($("#th2h"), [
+    { k: "n", h: "Opponent", v: (x) => x.n.toLowerCase(), f: (x) => `<a class="tl" href="#/h2h/team/${id}/${x.id}${scopeQ()}">${tLogo(x.id, 20)}<span>${esc(x.n)}</span></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "w", h: "Record", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${x.w}–${x.g - x.w}</span>` },
+  ], [...opps.values()], { sort: "g", page: 8 });
+  let n = 30;
+  const draw = () => { $("#tg").innerHTML = rows.slice(0, n).map(teamGameLine).join("") + (rows.length > n ? `<button class="more">Show more (${rows.length - n} left)</button>` : "");
+    const m = $("#tg .more"); if (m) m.onclick = () => { n += 50; draw(); }; };
+  draw();
+}
+
+async function champPage(c, q) {
+  const [d, meta] = await Promise.all([J(`c/${c}.json`), J("meta.json")]);
+  const role = q.get("role") || "", pa = q.get("pa") || "";
+  const scoped = d.rows.filter((r) => inScope(r.t));
+  const rows = pa ? scoped.filter((r) => r.pa === pa) : scoped;
+  const rr = role ? rows.filter((r) => r.r === role) : rows;
+  const okT = (ti) => inScope(meta.tours[ti]), okP = (pi) => !pa || meta.patches[pi] === pa;
+  const ng = meta.g.reduce((n, [ti, pi, g]) => n + (okT(ti) && okP(pi) ? g : 0), 0);
+  const bans = meta.b.reduce((n, [cc, ti, pi, v]) => n + (cc === c && okT(ti) && okP(pi) ? v : 0), 0);
+  const a = agg(rr);
+  remember({ h: "#/champion/" + c, n: cname(c), k: "Champion", img: champImg(c, 26) });
+  const roles = [...groupBy(rows, "r")].map(([r, rs]) => ({ r, g: rs.length, w: rs.reduce((s, x) => s + x.w, 0) })).sort((x, y) => y.g - x.g);
+  const patches = [...groupBy(scoped, "pa").keys()].filter(Boolean).sort((x, y) => cmpPatch(y, x));
+  const qs = (o) => "#/champion/" + c + "?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, ...o }).filter(([, v]) => v)));
+  const players = [...groupBy(rr, "p")].map(([p, rs]) => ({ p, n: rs[0].pn, tn: rs[0].tn, ...agg(rs) }));
+  const withB = rr.filter((r) => r.core);
+  page(`<div class="card chead"><div class="bgimg" style="background-image:url('${DD}img/champion/splash/${c}_0.jpg')"></div><div class="prof">${champImg(c, 84)}
+      <div><h1>${esc(cname(c))}</h1><div class="sub"><span class="faint">${esc(scopeName())}${pa ? " · patch " + esc(pa) : ""}</span></div>
+      <div class="chips" style="margin-top:10px">${["", ...roles.map((x) => x.r)].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${r ? RL[r] : "All roles"}</a>`).join("")}
+        <select class="fsel" id="cpa"><option value="">All patches</option>${patches.map((x) => `<option ${x === pa ? "selected" : ""}>${x}</option>`).join("")}</select></div></div>
+      <div class="kpis"><div class="kpi"><b>${f1((100 * (rows.length + bans)) / (ng || 1))}%</b><span>presence</span></div><div class="kpi"><b>${rows.length}</b><span>picks</span></div><div class="kpi"><b>${bans}</b><span>bans</span></div>
+      <div class="kpi"><b class="${wrCls(a.wr)}">${rr.length ? a.wr + "%" : "–"}</b><span>win rate</span></div><div class="kpi"><b class="${kdaCls(a.kda)}">${f2(a.kda)}</b><span>KDA</span></div></div></div>
+      <div class="tabs">${favBtn({ h: "#/champion/" + c, n: cname(c), k: "Champion", img: champImg(c, 26) })}</div></div>
+    <div class="grid2b" style="margin-top:16px">
+      <div class="card"><h3>Build <span class="sp faint">${withB.length ? `from ${withB.length} of ${rr.length} games with build data` : ""}</span></h3>${withB.length ? buildBlock(withB) : `<div class="empty">Item order, skill order and full runes are still being collected for these games.<br><span class="faint">Final items and keystones are below.</span></div>`}</div>
+      <div class="stack"><div class="card"><h3>Runes</h3>${runeBlock(rr, withB)}</div>
+        <div class="card"><h3>Summoner spells</h3>${listBlock(rr, (r) => (r.sp || []).slice().sort().join(","), (k) => k.split(",").filter(Boolean).map((x) => spellImg(x, 26)).join(""), 3)}</div></div></div>
+    <div class="grid2b" style="margin-top:16px">
+      <div class="card"><h3>Counters <span class="sp faint">vs lane opponent · ${esc(cname(c))}'s win rate</span></h3><div id="cm"></div></div>
+      <div class="card"><h3>Synergy <span class="sp faint">with teammates</span></h3><div id="cs"></div></div></div>
+    <div class="grid2" style="margin-top:16px"><div class="stack">
+      <div class="card"><h3>Roles</h3><div class="bars">${roles.map((x) => `<div class="row"><span class="role">${RL[x.r]}</span><div class="track"><i style="width:${(100 * x.g) / (rows.length || 1)}%"></i></div><span>${x.g} games</span><span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span></div>`).join("") || `<div class="faint">Not picked.</div>`}</div></div>
+      <div class="card"><h3>Final items <span class="sp faint">% of games · win</span></h3>${listBlock(rr, (r) => r.it.filter((i) => BIG.has(i)), (i) => `${itemImg(+i, 28)}<span>${esc(S.idx.dd.items[i] || i)}</span>`, 10, true)}</div>
+      <div class="card"><h3>Pro players</h3><div id="cp"></div></div></div>
+    <div class="card"><h3>Pro games <span class="sp faint">${rr.length}</span></h3><div class="mhs" id="mh"></div></div></div>`);
+  $("#cpa").onchange = (e) => { location.hash = qs({ pa: e.target.value }); };
+  const mu = (key) => { const m = new Map(); for (const r of rr) for (const o of [].concat(key(r) || [])) { const x = m.get(o) || { c: o, g: 0, w: 0 }; x.g++; x.w += r.w; m.set(o, x); } return [...m.values()]; };
+  const cCols = (lbl) => [
+    { k: "c", h: lbl, v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}">${champImg(x.c, 26)}<b>${esc(cname(x.c))}</b></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g },
+    { k: "wr", h: "Win", num: 1, v: (x) => (x.g >= 3 ? x.w / x.g : -1), f: (x) => `<span class="${x.g >= 3 ? wrCls(pct(x.w, x.g)) : "faint"}">${pct(x.w, x.g)}%</span> <span class="faint">${x.w}–${x.g - x.w}</span>` }];
+  table($("#cm"), cCols("Opponent"), mu((r) => r.oc), { sort: "g", page: 10 });
+  table($("#cs"), cCols("Teammate"), mu((r) => r.al), { sort: "g", page: 10 });
+  table($("#cp"), [
+    { k: "n", h: "Player", v: (x) => x.n.toLowerCase(), f: (x) => `<a class="who" href="${link("player/" + x.p)}">${pPhoto(S.players[x.p], 24)}<div><b>${esc(x.n)}</b><div class="faint" style="font-size:12px">${esc(x.tn)}</div></div></a>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.wr, f: (x) => `<span class="${wrCls(x.wr)}">${x.wr}%</span>` },
+    { k: "kda", h: "KDA", num: 1, v: (x) => x.kda, f: (x) => `<span class="${kdaCls(x.kda)}">${f2(x.kda)}</span>` },
+  ], players, { sort: "g", page: 10 });
+  mhList($("#mh"), rr, { showPlayer: true });
+}
+const cmpPatch = (a, b) => { const x = a.split(".").map(Number), y = b.split(".").map(Number); return x[0] - y[0] || x[1] - y[1]; };
+// generic "option · pick% · win%" list; key(row) -> string or array (each counted once per game)
+function listBlock(rows, key, show, n = 5, multi = false) {
+  const m = new Map();
+  for (const r of rows) for (const k of multi ? [...new Set(key(r))] : [key(r)]) { if (k == null || k === "") continue; const x = m.get(k) || { k, g: 0, w: 0 }; x.g++; x.w += r.w; m.set(k, x); }
+  const top = [...m.values()].sort((x, y) => y.g - x.g).slice(0, n);
+  return top.length ? `<div class="iteml">${top.map((x) => `<div class="row brow"><div class="bl">${show(String(x.k))}</div><span class="n">${pct(x.g, rows.length)}%<small class="faint"> ${x.g}</small></span><span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span></div>`).join("")}</div>` : `<div class="faint" style="padding:12px 16px">No data.</div>`;
+}
+const arrow = `<span class="arr">›</span>`;
+const skillKey = (k) => `<span class="sk sk-${k}">${k}</span>`;
+function buildBlock(rows) {
+  return `<div class="bsec"><h4>Core build</h4>${listBlock(rows.filter((r) => r.core.length >= 2), (r) => r.core.join(","), (k) => k.split(",").map((i) => itemImg(+i, 30)).join(arrow), 4)}</div>
+    <div class="bsec"><h4>Boots</h4>${listBlock(rows, (r) => r.bt, (k) => `${itemImg(+k, 28)}<span>${esc(S.idx.dd.items[k] || k)}</span>`, 3)}</div>
+    <div class="bsec"><h4>Starting items</h4>${listBlock(rows, (r) => (r.stt || []).join(","), (k) => k.split(",").map((i) => itemImg(+i, 28)).join(""), 3)}</div>
+    <div class="bsec"><h4>Skill order</h4>${listBlock(rows, (r) => r.ski, (k) => k.split("").map(skillKey).join(arrow), 2)}
+      ${(() => { const top = [...groupBy(rows.filter((r) => r.sk), (r) => r.sk.slice(0, 15))].sort((x, y) => y[1].length - x[1].length)[0]; return top ? skillGrid(top[0]) : ""; })()}</div>`;
+}
+function skillGrid(sk) {
+  return `<div class="skg">${["Q", "W", "E", "R"].map((k) => `<div class="skr">${skillKey(k)}${sk.split("").map((x, i) => `<span class="${x === k ? "on sk-" + k : ""}">${x === k ? i + 1 : ""}</span>`).join("")}</div>`).join("")}</div>`;
+}
+const SHARD = { 5001: ["Health scaling", "StatModsHealthScalingIcon"], 5002: ["Armor", "StatModsArmorIcon"], 5003: ["Magic resist", "StatModsMagicResIcon"], 5005: ["Attack speed", "StatModsAttackSpeedIcon"],
+  5007: ["Ability haste", "StatModsCDRScalingIcon"], 5008: ["Adaptive force", "StatModsAdaptiveForceIcon"], 5010: ["Move speed", "StatModsMovementSpeedIcon"], 5011: ["Health", "StatModsHealthPlusIcon"], 5013: ["Tenacity and slow resist", "StatModsTenacityIcon"] };
+const shardImg = (id, sz = 18) => SHARD[id] ? `<img src="${DD}img/perk-images/StatMods/${SHARD[id][1]}.png" width="${sz}" height="${sz}" title="${SHARD[id][0]}" alt="" style="background:#000;border-radius:50%" onerror="this.style.visibility='hidden'">` : "";
+function runePage(rn) {
+  return `<div class="rpage">${runeImg(rn[2], 34, "background:#000;border-radius:50%")}<span class="rgrp">${rn.slice(3, 6).map((x) => runeImg(x, 24)).join("")}</span><span class="rgrp">${runeImg(rn[1], 18, "opacity:.7")}${rn.slice(6, 8).map((x) => runeImg(x, 24)).join("")}</span><span class="rgrp">${rn.slice(8, 11).map((x) => shardImg(x)).join("")}</span></div>`;
+}
+function runeBlock(rr, withB) {
+  if (withB.some((r) => r.rn)) return listBlock(withB.filter((r) => r.rn), (r) => r.rn.join(","), (k) => runePage(k.split(",").map(Number)), 3);
+  return listBlock(rr, (r) => r.ks && `${r.ks},${r.sub}`, (k) => { const [ks, sub] = k.split(","); return `${runeImg(+ks, 30, "background:#000;border-radius:50%")}${runeImg(+sub, 20)}<span>${esc(S.idx.dd.runes[ks]?.[0] || ks)}</span>`; }, 4);
+}
+let BIG = new Set();
+
+async function gamePage(t, gid) {
+  const shard = await J(`g/${t}.json`), g = shard[gid];
+  if (!g) return page(`<div class="empty">Game not found.</div>`);
+  const [a, b] = g.teams;
+  const series = Object.values(shard).filter((x) => x.date === g.date && new Set(x.teams.map((y) => y.id)).has(a.id) && new Set(x.teams.map((y) => y.id)).has(b.id)).sort((x, y) => x.id - y.id);
+  page(`<div class="card"><div class="prof" style="justify-content:center;text-align:center;gap:30px">
+      <div>${tLogo(a.id, 56)}<h1 class="${a.win ? "" : "faint"}">${tLink(a.id, a.name)}</h1><div class="muted">${a.win ? "Victory" : "Defeat"} · blue</div></div>
+      <div><div style="font-size:34px;font-weight:800">${a.k} – ${b.k}</div><div class="muted">${mmss(g.len)} · patch ${esc(g.patch)}</div></div>
+      <div>${tLogo(b.id, 56)}<h1 class="${b.win ? "" : "faint"}">${tLink(b.id, b.name)}</h1><div class="muted">${b.win ? "Victory" : "Defeat"} · red</div></div></div>
+      <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a><span class="pill">${esc(g.stage || "")}</span><span class="pill">${esc(g.date)}</span>${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
+      ${series.length > 1 ? series.map((x, i) => `<a class="chip ${x.id == gid ? "on" : ""}" href="${gLink(t, x.id)}">Game ${i + 1}</a>`).join("") : ""}</div></div>
+    ${g.x ? `<div class="seg" id="gtabs" style="margin-top:16px"><button data-t="ov" class="on">Overview</button><button data-t="tl">Gold & timeline</button><button data-t="bd">Builds</button></div>` : ""}
+    <div id="gov"><div class="card" style="margin-top:16px;overflow:hidden">${scoreboard(g)}</div>
+    <div class="card" style="margin-top:16px"><h3>All stats</h3><div class="scroll" id="fs"></div></div></div><div id="gx" hidden></div>`);
+  if (g.x) $("#gtabs").onclick = async (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    $("#gtabs").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    $("#gov").hidden = b.dataset.t !== "ov"; $("#gx").hidden = b.dataset.t === "ov";
+    if (b.dataset.t === "ov") return;
+    $("#gx").innerHTML = `<div class="loading">Loading…</div>`;
+    const x = await J(`x/${gid}.json`);
+    if (b.dataset.t === "tl") { $("#gx").innerHTML = goldTimeline(g, x); }
+    else { $("#gx").innerHTML = `<div class="card" style="margin-top:16px"><div class="bpick">${g.players.map((p, i) => `<button data-i="${i}" class="${i ? "" : "on"} ${p.side ? "r" : "b"}">${champImg(p.ci, 34)}<span>${esc(p.n)}</span></button>`).join("")}</div><div id="bdet"></div></div>`;
+      const show = (i) => { $("#bdet").innerHTML = playerBuild(g.players[i], x.b[g.players[i].pid]); $(".bpick").querySelectorAll("button").forEach((el) => el.classList.toggle("on", +el.dataset.i === i)); };
+      $(".bpick").onclick = (e2) => { const el = e2.target.closest("button"); if (el) show(+el.dataset.i); }; show(0); }
+  };
+  const ROWS = [["Level", "lvl"], ["Gold", "gold"], ["Gold share", "goldp", "%"], ["Damage to champions", "dmg"], ["Damage share", "dmgp", "%"], ["Kill participation", "kp", "%"], ["Gold diff @15", "gd15"], ["CS diff @15", "csd15"], ["XP diff @15", "xpd15"],
+    ["Vision score", "vs"], ["Wards placed", "wp"], ["Wards killed", "wk"], ["Control wards", "cw"], ["Solo kills", "solo"], ["Damage to turrets", "tdmgT"], ["Damage taken", "taken"], ["Damage mitigated", "mit"], ["Healing", "heal"], ["Shielding allies", "shieldT"], ["CC time (s)", "cc"], ["Time dead (s)", "dead"], ["Objectives stolen", "steal"]];
+  $("#fs").innerHTML = `<table class="tbl"><thead><tr><th></th>${g.players.map((p) => `<th class="n" style="border-bottom-color:${p.side ? "var(--red)" : "var(--blue)"}"><div style="display:flex;justify-content:flex-end">${champImg(p.ci, 28)}</div>${esc(p.n)}</th>`).join("")}</tr></thead><tbody>${ROWS.map(([h, k, u]) => {
+    const vals = g.players.map((p) => p.st?.[k]); const mx = Math.max(...vals.filter((v) => v != null));
+    return `<tr><td class="muted">${h}</td>${vals.map((v) => `<td class="n" style="${v === mx && mx > 0 ? "color:var(--gold2);font-weight:700" : ""}">${v == null ? "–" : v.toLocaleString() + (u || "")}</td>`).join("")}</tr>`; }).join("")}</tbody></table>`;
+}
+
+const EVN = { kill: "Kill", plate: "Plate", tower: "Tower", inhib: "Inhibitor", nexus: "Nexus", nashor: "Baron", herald: "Rift Herald", atakhan: "Atakhan", voidgrubs: "Voidgrubs", "elder-dragon": "Elder Drake", firstblood3: "First blood" };
+const evName = (t) => EVN[t] || t.replace(/-dragon$/, " Drake").replace(/-/g, " ").replace(/^\w/, (c) => c.toUpperCase());
+function goldTimeline(g, x) {
+  const n = Math.max(0, ...x.gold.map((a) => (a ? a.length : 0)));
+  const team = (side) => Array.from({ length: n }, (_, m) => g.players.reduce((s, p, i) => s + (p.side === side && x.gold[i] ? x.gold[i][Math.min(m, x.gold[i].length - 1)] : 0), 0));
+  const diff = team(0).map((v, m) => v - team(1)[m]);
+  const W = 900, H = 220, mid = H / 2, mx = Math.max(1000, ...diff.map(Math.abs)), X = (m) => (m / Math.max(1, n - 1)) * W, Y = (v) => mid - (v / mx) * (mid - 14);
+  const pts = diff.map((v, m) => `${X(m).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const big = x.ev.filter((e) => e[2] !== "kill" && e[2] !== "plate");
+  const marks = big.map((e) => `<g><circle cx="${X(e[0] / 60).toFixed(1)}" cy="${e[1] ? H - 6 : 6}" r="5" fill="${e[1] ? "var(--red)" : "var(--blue)"}"/><title>${mmss(e[0])} ${e[1] ? "Red" : "Blue"} · ${evName(e[2])}${e[7] ? " · " + e[7] : ""}</title></g>`).join("");
+  const [a, b] = g.teams;
+  return `<div class="card" style="margin-top:16px"><h3>Gold lead <span class="sp faint"><span style="color:var(--blue)">▲ ${esc(a.name)}</span> · <span style="color:var(--red)">▼ ${esc(b.name)}</span> · dots = objectives</span></h3>
+    <div style="padding:14px"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" role="img" aria-label="Gold difference over time">
+      <defs><clipPath id="up"><rect x="0" y="0" width="${W}" height="${mid}"/></clipPath><clipPath id="dn"><rect x="0" y="${mid}" width="${W}" height="${mid}"/></clipPath></defs>
+      <line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--line)"/>
+      <polygon points="0,${mid} ${pts} ${W},${mid}" fill="rgba(79,141,245,.35)" clip-path="url(#up)"/><polygon points="0,${mid} ${pts} ${W},${mid}" fill="rgba(239,87,101,.35)" clip-path="url(#dn)"/>
+      <polyline points="${pts}" fill="none" stroke="var(--gold2)" stroke-width="2" vector-effect="non-scaling-stroke"/>${marks}</svg>
+      <div class="faint" style="display:flex;justify-content:space-between;font-size:11.5px"><span>0:00</span><span>max lead ${kfmt(Math.round(Math.max(...diff)))} / ${kfmt(Math.round(-Math.min(...diff)))}</span><span>${mmss(g.len)}</span></div></div></div>
+    <div class="card" style="margin-top:16px"><h3>Timeline <span class="sp faint">${x.ev.length} events</span></h3><div class="evl">${x.ev.filter((e) => e[2] !== "plate").map((e) => `<div class="ev ${e[1] ? "r" : "b"}"><span class="t">${mmss(e[0])}</span>
+      ${e[4] ? champImg(e[4], 26) : ""}<span class="who2">${esc(e[3] || "")}</span><b>${evName(e[2])}</b>${e[6] ? champImg(e[6], 26) : ""}<span class="faint">${esc(e[2] === "kill" ? e[7] || "" : e[7] || "")}</span>${e[5].length ? `<span class="as">${e[5].map((c) => champImg(c, 18)).join("")}</span>` : ""}</div>`).join("")}</div></div>`;
+}
+function playerBuild(p, b) {
+  if (!b) return `<div class="empty">No build data for this player.</div>`;
+  const byMin = groupBy(b.bo, (e) => Math.round(e[0] / 60));
+  return `<div class="bsec"><h4>Item build order</h4><div class="bord">${[...byMin].map(([m, es]) => `<div class="bstep"><div class="bi">${es.map((e) => itemImg(e[1], 30)).join("")}</div><small class="faint">${m} min</small></div>`).join(arrow)}</div></div>
+    <div class="bsec"><h4>Skill order <span style="text-transform:none;letter-spacing:0">${skillMax(b.sk)}</span></h4>${skillGrid(b.sk.slice(0, 18))}</div>
+    <div class="bsec"><h4>Runes</h4><div style="padding:6px 8px 10px">${runePage(b.rn)}</div></div>`;
+}
+const skillMax = (sk) => { const c = { Q: 0, W: 0, E: 0 }; for (const k of sk.slice(0, 18)) if (k in c) c[k]++; return Object.keys(c).sort((x, y) => c[y] - c[x] || sk.indexOf(x) - sk.indexOf(y)).map(skillKey).join(arrow); };
+
+async function tourPage(slug) {
+  const shard = await J(`g/${slug}.json`), tr = S.tours[slug];
+  const gs = Object.values(shard).sort((a, b) => (b.date + b.id > a.date + a.id ? 1 : -1));
+  const st = new Map(); for (const g of gs) for (const t of g.teams) { const x = st.get(t.id) || { id: t.id, n: t.name, g: 0, w: 0, k: 0, len: 0 }; x.g++; x.w += t.win; x.k += t.k; x.len += g.len; st.set(t.id, x); }
+  const ch = new Map(); for (const g of gs) { for (const p of g.players) { const x = ch.get(p.ci) || { c: p.ci, p: 0, w: 0, b: 0 }; x.p++; x.w += g.teams[p.side].win ? 1 : 0; ch.set(p.ci, x); } for (const t of g.teams) for (const c of t.bi) { const x = ch.get(c) || { c, p: 0, w: 0, b: 0 }; x.b++; ch.set(c, x); } }
+  const pl = new Map(); for (const g of gs) for (const p of g.players) { const x = pl.get(p.pid) || { id: p.pid, n: p.n, r: p.role, tn: g.teams[p.side].name, rows: [] }; x.rows.push({ w: g.teams[p.side].win ? 1 : 0, k: p.k, d: p.d, a: p.a, cs: p.cs, len: g.len, dmg: p.st?.dmg, kp: p.st?.kp, gold: p.st?.gold, gd15: p.st?.gd15, vs: p.st?.vs }); pl.set(p.pid, x); }
+  const players = [...pl.values()].map((x) => ({ ...x, ...agg(x.rows) }));
+  page(`<div class="card"><div class="prof"><div class="avatar">${esc(initials(tr.lg))}</div><div><h1>${esc(tr.n)}</h1><div class="sub"><span class="pill">${esc(tr.lg)}</span><span class="faint">${esc(tr.a)} → ${esc(tr.b)} · ${gs.length} games</span></div></div></div></div>
+    <div class="grid2b" style="margin-top:16px"><div class="card"><h3>Standings <span class="sp faint">game record</span></h3><div id="ts"></div></div><div class="card"><h3>Champions</h3><div id="tc"></div></div></div>
+    <div class="card" style="margin-top:16px"><h3>Players</h3><div id="tpl"></div></div>
+    <div class="card" style="margin-top:16px"><h3>Games</h3><div class="gl" id="tgl"></div></div>`);
+  table($("#ts"), [{ k: "n", h: "Team", v: (x) => x.n, f: (x) => tLink(x.id, x.n, 22) }, { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "w", h: "W–L", num: 1, v: (x) => x.w / x.g, f: (x) => `${x.w}–${x.g - x.w}` },
+    { k: "wr", h: "Win %", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span>` }, { k: "len", h: "Avg length", num: 1, cls: "hide-s", v: (x) => x.len / x.g, f: (x) => mmss(Math.round(x.len / x.g)) }], [...st.values()], { sort: "wr", page: 30 });
+  table($("#tc"), [{ k: "c", h: "Champion", v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}">${champImg(x.c, 26)}<b>${esc(cname(x.c))}</b></a>` }, { k: "pr", h: "Presence", num: 1, v: (x) => x.p + x.b, f: (x) => pct(x.p + x.b, gs.length) + "%" },
+    { k: "p", h: "Picks", num: 1, v: (x) => x.p, f: (x) => x.p }, { k: "b", h: "Bans", num: 1, v: (x) => x.b, f: (x) => x.b }, { k: "wr", h: "Win", num: 1, v: (x) => (x.p ? x.w / x.p : -1), f: (x) => (x.p ? pct(x.w, x.p) + "%" : "–") }], [...ch.values()], { sort: "pr", page: 15 });
+  table($("#tpl"), [{ k: "n", h: "Player", v: (x) => x.n.toLowerCase(), f: (x) => `<div>${pLink(x.id, x.n)} <span class="faint">${esc(x.tn)}</span></div>` }, { k: "r", h: "Role", v: (x) => ROLES.indexOf(x.r), f: (x) => `<span class="role">${RL[x.r]}</span>` },
+    { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.wr, f: (x) => x.wr + "%" }, { k: "kda", h: "KDA", num: 1, v: (x) => x.kda, f: (x) => `<b class="${kdaCls(x.kda)}">${f2(x.kda)}</b>` },
+    { k: "csm", h: "CS/m", num: 1, cls: "hide-s", v: (x) => x.csm, f: (x) => f1(x.csm) }, { k: "dpm", h: "DPM", num: 1, cls: "hide-s", v: (x) => x.dpm, f: (x) => Math.round(x.dpm) }, { k: "kpa", h: "KP", num: 1, cls: "hide-s", v: (x) => x.kpa || 0, f: (x) => (Number.isFinite(x.kpa) ? Math.round(x.kpa) + "%" : "–") },
+    { k: "gd15", h: "GD@15", num: 1, cls: "hide-s", v: (x) => x.gd15 || 0, f: (x) => (Number.isFinite(x.gd15) ? Math.round(x.gd15) : "–") }], players, { sort: "g", page: 25 });
+  let n = 30;
+  const lines = gs.map((g) => ({ g: g.id, t: slug, dt: g.date, len: g.len, st: g.stage, tm: g.teams.map((t, i) => [t.id, t.name, t.win ? 1 : 0, t.k, g.players.filter((p) => p.side === i).map((p) => p.ci)]) }));
+  const draw = () => { $("#tgl").innerHTML = lines.slice(0, n).map(gameLine).join("") + (lines.length > n ? `<button class="more">Show more (${lines.length - n} left)</button>` : ""); const m = $("#tgl .more"); if (m) m.onclick = () => { n += 50; draw(); }; };
+  draw();
+}
+
+// ---------------- search
+function setupSearch() {
+  wireSearch($("#q"), $("#sugg"));
+  document.addEventListener("click", (e) => { if (!e.target.closest(".search")) document.querySelectorAll(".sugg").forEach((b) => (b.hidden = true)); });
+  document.addEventListener("keydown", (e) => { if (e.key === "/" && document.activeElement.tagName !== "INPUT") { e.preventDefault(); ($("#hq") || $("#q")).focus(); } });
+}
+function wireSearch(q, box) {
+  let sel = 0, hits = [];
+  const run = () => {
+    const s = q.value.trim().toLowerCase();
+    if (!s) {  // empty box: recent searches + favourites, like op.gg
+      const rec = store.get("recent", []), fav = store.get("fav", []);
+      hits = [...fav, ...rec.filter((r) => !fav.some((f) => f.h === r.h))].map((x) => ({ h: x.h }));
+      const row = (x) => `<a href="${x.h}">${x.img || ""}<b>${esc(x.n)}</b><small>${esc(x.k)}</small></a>`;
+      box.innerHTML = (fav.length ? `<div class="sh">Favourites</div>${fav.map(row).join("")}` : "") + (rec.length ? `<div class="sh">Recent <button data-clear>Clear</button></div>${rec.filter((r) => !fav.some((f) => f.h === r.h)).map(row).join("")}` : "");
+      sel = -1; box.hidden = !(fav.length || rec.length);
+      const c = box.querySelector("[data-clear]"); if (c) c.onclick = (e) => { e.preventDefault(); e.stopPropagation(); store.set("recent", []); run(); };
+      return;
+    }
+    const sc = (n) => { n = n.toLowerCase(); return n === s ? 0 : n.startsWith(s) ? 1 : n.includes(s) ? 2 : 9; };
+    hits = [
+      ...S.idx.players.map((p) => ({ s: sc(p.n), g: p.g, h: link("player/" + p.id), html: `${pPhoto(p, 26)}<b>${esc(p.n)}</b><span class="faint">${esc(p.tn)}</span><small>Player · ${RL[p.r]}</small>` })),
+      ...S.idx.teams.map((t) => ({ s: sc(t.n), g: t.g, h: link("team/" + t.id), html: `${tLogo(t.id, 24)}<b>${esc(t.n)}</b><small>Team · ${esc(t.lg)}</small>` })),
+      ...S.idx.champs.map((c) => ({ s: sc(c.n), g: 1e4, h: link("champion/" + c.c), html: `${champImg(c.c, 26)}<b>${esc(c.n)}</b><small>Champion</small>` })),
+    ].filter((x) => x.s < 9).sort((a, b) => a.s - b.s || b.g - a.g).slice(0, 8);
+    sel = 0; box.hidden = !hits.length;
+    box.innerHTML = hits.map((x, i) => `<a href="${x.h}" class="${i === sel ? "sel" : ""}">${x.html}</a>`).join("");
+  };
+  q.oninput = run;
+  q.onkeydown = (e) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % hits.length; box.querySelectorAll("a").forEach((a, i) => a.classList.toggle("sel", i === sel)); }
+    else if (e.key === "Enter" && hits[sel]) { location.hash = hits[sel].h; q.value = ""; box.hidden = true; q.blur(); }
+    else if (e.key === "Escape") { box.hidden = true; q.blur(); }
+  };
+  box.onclick = () => { q.value = ""; box.hidden = true; };
+  q.onfocus = run;
+  return () => { run(); if (hits[0]) { location.hash = hits[0].h; q.value = ""; box.hidden = true; } else q.focus(); };
+}
+
+// ---------------- router
+async function route() {
+  const [path, qs] = location.hash.slice(2).split("?");
+  const q = new URLSearchParams(qs || ""), parts = (path || "").split("/");
+  S.scope = q.get("s") || ""; $("#scope").value = S.scope;
+  document.querySelectorAll("nav.main a").forEach((a) => a.classList.toggle("on", a.dataset.r === parts[0]));
+  document.body.classList.toggle("home", !parts[0]);
+  window.scrollTo(0, 0);
+  app().innerHTML = `<div class="loading">Loading…</div>`;
+  try {
+    const [p, a, b] = parts;
+    if (p === "player") await playerPage(a, q);
+    else if (p === "team") await teamPage(a);
+    else if (p === "champion") await champPage(a, q);
+    else if (p === "game") await gamePage(a, b);
+    else if (p === "t") await tourPage(a);
+    else if (p === "players") playersPage(q);
+    else if (p === "champions") await champsPage(q);
+    else if (p === "leaderboard") leaderPage(q);
+    else if (p === "compare") comparePage(q);
+    else if (p === "h2h") await h2hPage(a, b, parts[3]);
+    else if (p === "teams") teamsPage();
+    else if (p === "tournaments") toursPage();
+    else await home();
+    const name = $("h1")?.textContent; document.title = name && p ? `${name} · Rift Ledger` : "Rift Ledger · every pro game of 2026";
+  } catch (e) { console.error(e); page(`<div class="empty">Couldn't load this page (${esc(e.message)}).</div>`); }
+}
+
+(async () => {
+  S.idx = await J("index.json");
+  for (const t of S.idx.tours) S.tours[t.s] = t;
+  for (const c of S.idx.champs) S.champs[c.c] = c;
+  for (const p of S.idx.players) S.players[p.id] = p;
+  for (const t of S.idx.teams) S.teams[t.id] = t;
+  BIG = new Set(S.idx.dd.big);
+  $("#built").textContent = `${S.idx.n.toLocaleString()} games · latest ${S.idx.built} · Data Dragon ${S.idx.dd.ver}`;
+  buildScope(); setupSearch();
+  addEventListener("hashchange", route); route();
+})();
+</script>
+</body>
+</html>
