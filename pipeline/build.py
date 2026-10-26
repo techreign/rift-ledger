@@ -221,8 +221,14 @@ def lifetime(cid, cname, team_of, anyp, gol_players, gol_teams):
             g=len(rows), by=player_by(rows), top=[c for c, _ in Counter(r["c"] for r in rows).most_common(3)]))
         gz(OUT / "h" / "p" / f"{p}.json.gz", dict(info, rows=rows))
         if not str(p).startswith("o"):
-            y = defaultdict(lambda: [0, 0])
-            for r in rows: y[year[r["t"]]][0] += 1; y[year[r["t"]]][1] += r["w"]
+            # year -> [games, wins, kills, deaths, assists, main team, its logo] for the 2026 page's season tiles
+            y, tms = defaultdict(lambda: [0, 0, 0, 0, 0]), defaultdict(Counter)
+            for r in rows:
+                v = y[year[r["t"]]]; v[0] += 1; v[1] += r["w"]; v[2] += r.get("k") or 0; v[3] += r.get("d") or 0; v[4] += r.get("a") or 0
+                tms[year[r["t"]]][(r["tm"], r["tn"])] += 1
+            for yr, v in y.items():
+                (tm, tn), _ = tms[yr].most_common(1)[0]
+                v += [tn, (tinfo.get(tm) or {}).get("lo", "")]
             yrs[p] = dict(y)
     teams = []
     for t, rows in team_games.items():
