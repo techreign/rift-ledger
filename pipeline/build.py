@@ -9,7 +9,7 @@ Outputs (all fetched lazily by the app):
   data/x/<game>.json      per-game extras (gold per minute, event log, build/skill order, full runes) when scraped
   data/meta.json          champion picks/wins by tournament x patch x role (+ bans) for the tier list
 """
-import json, re, shutil, sys, time, urllib.request
+import json, re, shutil, sys, time, unicodedata, urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -26,7 +26,8 @@ def get_json(url, name):
 def slug(s): return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
 def league_of(name):
     return re.sub(r"\s*\b2026\b.*$", "", name).strip() or re.sub(r"^2026\s*", "", name).strip()
-def norm(s): return re.sub(r"[^a-z0-9]", "", (s or "").lower())
+def norm(s):  # accents folded so 'LEVIATÁN' == 'Leviatan'
+    return re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFKD", s or "").encode("ascii", "ignore").decode().lower())
 ROLES = ["top", "jungle", "mid", "adc", "support"]
 
 def ddragon():
@@ -56,20 +57,55 @@ def lolesports():
             p.write_bytes(urllib.request.urlopen(req, timeout=60).read())
         except Exception as e:
             print("lolesports fetch failed:", e, file=sys.stderr)
-            if not p.exists(): return {}, {}, {}
+            if not p.exists(): return (lambda name: None), {}
     teams = json.loads(p.read_text(encoding="utf-8"))["data"]["teams"]
     teams.sort(key=lambda t: t.get("status") != "active")  # active teams win name clashes
     https = lambda u: (u or "").replace("http://", "https://")
-    logo, roster, anyp = {}, {}, defaultdict(list)
+    exact, anyp = {}, defaultdict(list)
+    entries = []  # (loose name, active?, entry) for the contains-match fallback
     for t in teams:
-        k = norm(t["name"])
-        if k and k not in logo and t.get("image"): logo[k] = https(t["image"]); roster[k] = {}
+        if not t.get("image"): continue
+        e = dict(logo=https(t["image"]), roster={})
         for pl in t.get("players") or []:
             img = https(pl.get("image"))
             if not img or "default-headshot" in img: continue
-            if k in roster: roster[k].setdefault(norm(pl["summonerName"]), img)
-            anyp[norm(pl["summonerName"])].append(img)
-    return logo, roster, {k: v[0] for k, v in anyp.items() if len(set(v)) == 1}
+            e["roster"].setdefault(norm(pl["summonerName"]), img)
+            anyp[(norm(pl["summonerName"]), LOLROLE.get(pl.get("role"), pl.get("role")))].append(img)
+        for k in (norm(t["name"]), loose(t["name"])):
+            if k: exact.setdefault(k, e)
+        entries.append((loose(t["name"]), t.get("status") == "active", e))
+
+    def team(name):
+        name = TEAM_ALIAS.get(name, name)
+        """gol.gg team name -> lolesports entry: exact, then sponsor-stripped, then the shortest active lolesports
+        name that contains it ('Cloud9' -> 'Cloud9 Kia', 'Team Liquid' -> 'Team Liquid Alienware')."""
+        hit = exact.get(norm(name)) or exact.get(loose(name))
+        if hit: return hit
+        k = loose(name)
+        if len(k) < 4: return None  # 'JD', 'WE' would match half the list
+        cands = sorted((len(n), i) for i, (n, active, e) in enumerate(entries) if active and k in n)
+        return entries[cands[0][1]][2] if cands else None
+    # outside a team match, only trust a name+role that points at exactly one photo
+    return team, {k: v[0] for k, v in anyp.items() if len(set(v)) == 1}
+
+# gol.gg name -> lolesports name where they share no usable words (city prefixes, academy brands)
+TEAM_ALIAS = {"JD Gaming": "Beijing JDG Esports", "Team WE": "Xi'an Team WE", "LNG Esports": "Suzhou LNG Esports",
+    "Nongshim Esports Academy": "NONGSHIM RED FORCE", "KT Rolster Challengers": "kt Challengers", "DN SOOPers Challengers": "DN SOOPers",
+    "Dplus KIA Challengers": "DK Challengers", "Hanwha Life Esports Challengers": "HLE Challengers", "HANJIN BRION Challengers": "BRO Challengers",
+    "Los Grandes": "Fla Los Grandes", "3BL Esports": "3BL GALAXY ESPORTS"}
+LOLROLE = {"bottom": "adc", "top": "top", "jungle": "jungle", "mid": "mid", "support": "support"}
+def loose(name):
+    """'Hanwha Life Esports' / 'Xi'an Team WE' -> core name, for matching when sponsor words differ"""
+    return norm(re.sub(r"\b(e-?sports?|gaming|team|club|the)\b", " ", (name or "").lower()))
+
+def recent_games(games, tours, n=400, per=20):
+    """newest n overall plus the newest `per` of every league/tournament, so a home-page filter is never empty"""
+    lg = {t["s"]: t["lg"] for t in tours}
+    keep, seen_t, seen_l = [], defaultdict(int), defaultdict(int)
+    for i, g in enumerate(games):  # games are newest first
+        if i < n or seen_t[g["t"]] < 14 or seen_l[lg[g["t"]]] < per: keep.append(g)
+        seen_t[g["t"]] += 1; seen_l[lg[g["t"]]] += 1
+    return keep
 
 def max_order(sk):
     """'QEWQQRQ...' -> 'QEW' (most points first, ties by who got there first)"""
@@ -89,7 +125,7 @@ def main():
             champ_id[display] = hit[0] if hit else (golkey or re.sub(r"[^A-Za-z]", "", display))
         return champ_id[display]
 
-    logo, roster, anyp = lolesports()
+    team_of, anyp = lolesports()
     boots, big = set(dd["boots"]), set(dd["big"])
     extras, xdir = {}, ROOT / "data" / "extra"
     for f in xdir.glob("*/*.json") if xdir.exists() else []:
@@ -143,7 +179,7 @@ def main():
             opp = g["teams"][1 - side]
             mine = [p for p in g["players"] if p["side"] == side]
             if t["id"] not in tinfo:
-                tinfo[t["id"]] = dict(id=t["id"], n=t["name"], rg=None, last=g["date"], **({"lo": logo[norm(t["name"])]} if norm(t["name"]) in logo else {}))
+                tinfo[t["id"]] = dict(id=t["id"], n=t["name"], rg=None, last=g["date"], **({"lo": e["logo"]} if (e := team_of(t["name"])) else {}))
             team_games[t["id"]].append(dict(g=g["id"], t=g["t"], dt=g["date"], s=side, w=int(t["win"]), op=opp["id"], on=opp["name"], len=g["len"],
                 k=t["k"], ok=opp["k"], pk=[p["ci"] for p in mine], opk=[p["ci"] for p in g["players"] if p["side"] != side], bn=t["bi"],
                 ro=[[p["pid"], p["n"], p["role"]] for p in mine]))
@@ -165,7 +201,7 @@ def main():
             champ_rows[p["ci"]].append(crow)
             if p["pid"] not in pinfo:
                 k = norm(p["n"])
-                ph = (roster.get(norm(t["name"])) or {}).get(k) or anyp.get(k)
+                ph = ((team_of(t["name"]) or {}).get("roster") or {}).get(k) or anyp.get((k, p["role"]))
                 pinfo[p["pid"]] = dict(id=p["pid"], n=p["n"], tm=t["id"], tn=t["name"], **({"ph": ph} if ph else {}))
 
     region_of = {t["s"]: t["lg"] for t in tours}
@@ -213,7 +249,7 @@ def main():
 
     recent = [dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], pa=g["patch"], st=g["stage"],
         tm=[[t["id"], t["name"], int(t["win"]), t["k"], [p["ci"] for p in g["players"] if p["side"] == i]] for i, t in enumerate(g["teams"])])
-        for g in games[:400]]
+        for g in recent_games(games, tours)]
     index = dict(built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
         tours=sorted(tours, key=lambda t: t["b"] or "", reverse=True), players=sorted(players, key=lambda p: -p["g"]),
         teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,

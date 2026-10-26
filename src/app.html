@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Rift Ledger</title>
 <meta name="description" content="Every 2026 pro League of Legends game: player match histories, champion pools, builds, team records and tournament stats.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0e1015">
+<!-- link previews (Discord, X, iMessage...). Hash routes can't have per-page tags, so every link shares these. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Rift Ledger">
+<meta property="og:title" content="Rift Ledger · every pro League of Legends game of 2026">
+<meta property="og:description" content="op.gg for pro play: match histories, champion builds, tier list, leaderboards and head-to-heads for every 2026 pro game.">
+<meta property="og:url" content="https://techreign.github.io/rift-ledger/">
+<meta property="og:image" content="https://techreign.github.io/rift-ledger/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -284,6 +295,13 @@ textarea#msq { width: 100%; background: var(--bg); border: 1px solid var(--line)
 .bstep .bi { display: flex; gap: 2px; } .bstep .bi img { border-radius: 5px; }
 @media (max-width: 640px) { .podium { grid-template-columns: 1fr; } .pod.p0 { order: -1; } .h2h { grid-template-columns: 1fr; } }
 
+.nf { max-width: 560px; margin: 50px auto; text-align: center; }
+.nf h1 { font-size: 26px; margin-bottom: 8px; }
+.nf .nfs { max-width: 420px; margin: 18px auto 0; text-align: left; }
+.nf .nfs input { width: 100%; height: 42px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); padding: 0 14px; outline: none; }
+.nf .nfs input:focus { border-color: var(--gold); }
+.nf .nfs .sugg { top: 48px; }
+
 footer { border-top: 1px solid var(--line); color: var(--faint); font-size: 12px; padding: 22px 0 40px; }
 footer p { margin: 4px 0; }
 
@@ -338,7 +356,8 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const J = (path) => {
   // index.json is re-checked every 10 minutes; everything else is keyed to the index's build stamp
   const v = path === "index.json" ? Math.floor(Date.now() / 6e5) : (S.idx?.v || S.idx?.n);
-  if (!S.cache.has(path)) S.cache.set(path, fetch("data/" + path + "?v=" + v).then((r) => { if (!r.ok) throw new Error(path + " " + r.status); return r.json(); }));
+  if (!S.cache.has(path)) S.cache.set(path, fetch("data/" + path + "?v=" + v).then((r) => { if (!r.ok) throw new Error(path + " " + r.status); return r.json(); })
+    .catch((e) => { if (!/ 404$/.test(e.message)) S.cache.delete(path); throw e; }));  // network errors can be retried
   return S.cache.get(path);
 };
 const DD = "https://ddragon.leagueoflegends.com/cdn/";
@@ -490,7 +509,7 @@ async function home() {
   const recent = S.idx.recent.filter((g) => inScope(g.t)).slice(0, 14);
   const champs = S.idx.champs.map((c) => { let p = 0, w = 0, b = 0; for (const [t, v] of Object.entries(c.by)) if (inScope(t)) { p += v[0]; w += v[1]; b += v[2]; } return { c: c.c, p, w, b, pr: pct(p + b, ng) }; })
     .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr).slice(0, 12);
-  const pl = S.idx.players.map((p) => ({ p, s: sumBy(p.by) })).filter((x) => x.s[0] >= Math.min(15, Math.max(5, ng / 120))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
+  const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= Math.min(15, Math.max(5, ng / 120))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
   const lgs = {}; for (const t of S.idx.tours) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
   page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>RIFT LEDGER</div>
     <div class="tag">Every pro League of Legends game of 2026 — match histories, builds and stats.</div>
@@ -501,7 +520,7 @@ async function home() {
     <div class="counts"><b>${S.idx.n.toLocaleString()}</b> games · <b>${S.idx.players.length.toLocaleString()}</b> players · <b>${S.idx.tours.length}</b> tournaments · <b>${Object.keys(lgs).length}</b> leagues · patch <b>${S.idx.patches[0] || ""}</b></div></section>
     <div class="grid2b"><div class="card"><h3>Latest games <span class="sp faint">${esc(scopeName())}</span></h3><div class="gl">${recent.map(gameLine).join("") || `<div class="empty">No games.</div>`}</div></div>
     <div class="stack"><div class="card"><h3>Champion meta <span class="sp faint">presence · ${ng.toLocaleString()} games</span></h3><div id="hc"></div></div>
-    <div class="card"><h3>Best KDA <span class="sp faint">${esc(scopeName())}</span></h3><div id="hp"></div></div></div></div>`);
+    <div class="card"><h3>Best KDA <span class="sp faint">${S.scope ? esc(scopeName()) : "major leagues"}</span></h3><div id="hp"></div></div></div></div>`);
   table($("#hc"), [
     { k: "c", h: "Champion", f: (r) => `<a class="who" href="${link("champion/" + r.c)}">${champImg(r.c, 28)}<b>${esc(cname(r.c))}</b></a>` },
     { k: "pr", h: "Presence", num: 1, f: (r) => `<b>${r.pr}%</b>` },
@@ -603,16 +622,23 @@ const LB = {
   csm: ["CS / min", (s) => s[5] / (s[6] / 60), f1], kp: ["Kill participation", (s) => (s[11] ? s[10] / s[11] : NaN), (v) => Math.round(v) + "%"],
   vspm: ["Vision / min", (s) => s[12] / (s[6] / 60), f2], gpm: ["Gold / min", (s) => s[13] / (s[6] / 60), (v) => Math.round(v)],
 };
+// top-flight leagues + international events; without a filter, rankings use only these so 20-game KDA
+// stat-padders from regional leagues don't outrank LCK/LPL starters
+const MAJOR = /^(LCK|LCK Cup|LPL|LEC|LCS|LCP|CBLOL|CBLOL Cup|Americas Cup|MSI|Worlds|First Stand|Esports World Cup)$/;
+const majorOnly = (q) => !S.scope && q.get("lv") !== "all";
+const sumIf = (by, pred) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (pred(t)) v.forEach((x, i) => (s[i] += x)); return s; };
+const sumMajor = (by) => sumIf(by, (t) => MAJOR.test(S.tours[t]?.lg || ""));
 function leaderPage(q) {
-  const role = q.get("role") || "mid", stat = LB[q.get("stat")] ? q.get("stat") : "kda";
-  const ng = scopeGames(), minG = +(q.get("min") ?? (ng > 2000 ? 15 : 5));
+  const role = q.get("role") || "mid", stat = LB[q.get("stat")] ? q.get("stat") : "kda", maj = majorOnly(q);
+  const ng = scopeGames(), minG = +(q.get("min") ?? (S.scope && ng < 2000 ? 5 : 15));
   const [lbl, fn, fmt] = LB[stat];
-  const rows = S.idx.players.filter((p) => p.r === role).map((p) => { const s = sumBy(p.by); return { p, g: s[0], v: s[0] ? fn(s) : NaN, s }; })
+  const rows = S.idx.players.filter((p) => p.r === role).map((p) => { const s = maj ? sumMajor(p.by) : sumBy(p.by); return { p, g: s[0], v: s[0] ? fn(s) : NaN, s }; })
     .filter((x) => x.g >= minG && Number.isFinite(x.v)).sort((a, b) => b.v - a.v);
-  const qs = (o) => "#/leaderboard?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, stat, min: minG, s: S.scope, ...o }).filter(([, v]) => v !== "" && v != null)));
+  const qs = (o) => "#/leaderboard?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, stat, min: minG, s: S.scope, lv: q.get("lv"), ...o }).filter(([, v]) => v !== "" && v != null)));
   const pod = rows.slice(0, 3);
-  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Leaderboards</h1><span class="sp muted">${esc(scopeName())} · ${RL[role]} · min ${minG} games</span></div>
+  page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Leaderboards</h1><span class="sp muted">${maj ? "Major leagues + internationals" : esc(scopeName())} · ${RL[role]} · min ${minG} games</span></div>
     <div class="chips" style="margin-bottom:10px;align-items:center">${ROLES.map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${RL[r]}</a>`).join("")}
+      ${S.scope ? "" : `<span class="seg" style="margin-left:12px"><a class="${maj ? "on" : ""}" href="${qs({ lv: "" })}" title="LCK, LPL, LEC, LCS, LCP, CBLOL + MSI, Worlds, First Stand, EWC">Major leagues</a><a class="${maj ? "" : "on"}" href="${qs({ lv: "all" })}">All leagues</a></span>`}
       <span class="pill" style="margin-left:auto">Min games <select id="lbm" style="background:none;border:0">${[3, 5, 10, 15, 25, 40].map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
     <div class="chips" style="margin-bottom:16px">${Object.entries(LB).map(([k, [l]]) => `<a class="chip ${k === stat ? "on" : ""}" href="${qs({ stat: k })}">${l}</a>`).join("")}</div>
     <div class="podium">${[1, 0, 2].map((i) => pod[i] ? `<a class="pod p${i}" href="${link("player/" + pod[i].p.id)}"><span class="pos">${i + 1}</span>${pPhoto(pod[i].p, i ? 72 : 92)}<b>${esc(pod[i].p.n)}</b><span class="tl">${tLogo(pod[i].p.tm, 16)}<span class="faint">${esc(pod[i].p.tn)}</span></span><em>${fmt(pod[i].v)}</em><small class="faint">${lbl} · ${pod[i].g} games</small></a>` : "").join("")}</div>
@@ -946,7 +972,7 @@ let BIG = new Set();
 
 async function gamePage(t, gid) {
   const shard = await J(`g/${t}.json`), g = shard[gid];
-  if (!g) return page(`<div class="empty">Game not found.</div>`);
+  if (!g) return notFound("game");
   const [a, b] = g.teams;
   const series = Object.values(shard).filter((x) => x.date === g.date && new Set(x.teams.map((y) => y.id)).has(a.id) && new Set(x.teams.map((y) => y.id)).has(b.id)).sort((x, y) => x.id - y.id);
   page(`<div class="card"><div class="prof" style="justify-content:center;text-align:center;gap:30px">
@@ -1094,9 +1120,23 @@ async function route() {
     else if (p === "h2h") await h2hPage(a, b, parts[3]);
     else if (p === "teams") teamsPage();
     else if (p === "tournaments") toursPage();
-    else await home();
+    else if (!p) await home();
+    else notFound("page");
     const name = $("h1")?.textContent; document.title = name && p ? `${name} · Rift Ledger` : "Rift Ledger · every pro game of 2026";
-  } catch (e) { console.error(e); page(`<div class="empty">Couldn't load this page (${esc(e.message)}).</div>`); }
+  } catch (e) {
+    console.error(e);
+    const kind = { player: "player", team: "team", champion: "champion", game: "game", t: "tournament", h2h: "player" }[parts[0]];
+    if (/ 404$/.test(e.message) && kind) notFound(kind);
+    else page(`<div class="nf"><h1>Something went wrong</h1><p class="muted">This page didn't load. Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Home</a></p></div>`);
+    document.title = "Rift Ledger";
+  }
+}
+// friendly 404: old links, typos, players who changed IDs
+function notFound(kind) {
+  page(`<div class="nf"><h1>We couldn't find that ${kind}</h1><p class="muted">The link may be out of date${{ player: ", or this player has no 2026 pro games yet", champion: ", or this champion hasn't been played in 2026 pro games yet", team: ", or this team has no 2026 pro games yet", game: ", or the game hasn't been added yet" }[kind] || ""}. Try searching instead:</p>
+    <div class="search nfs"><input id="nfq" placeholder="Search players, teams, champions" autocomplete="off" aria-label="Search"><div class="sugg" id="nfsugg" hidden></div></div>
+    <p style="margin-top:18px"><a class="star" href="#/">Home</a> <a class="star" href="#/champions">Tier list</a> <a class="star" href="#/players">Players</a></p></div>`);
+  wireSearch($("#nfq"), $("#nfsugg")); $("#nfq").focus();
 }
 
 (async () => {
