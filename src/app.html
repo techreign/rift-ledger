@@ -496,14 +496,15 @@ async function metaOf() {
 }
 // op.gg's past seasons: one tile per year (record, win-rate bar, KDA, that year's team) from loaded rows, topped up
 // with the 2026 index's per-year summary (yrs: [games, wins, kills, deaths, assists, team, logo]) for years not loaded
-function seasonsOf(rows, yrs) {
+// self: the team whose page this is (its own rows carry no team id, only older ones carry the name it played under)
+function seasonsOf(rows, yrs, self) {
   const m = {};
   for (const r of rows) {
     const x = (m[yearOf(r.t)] ||= { y: yearOf(r.t), g: 0, w: 0, k: 0, d: 0, a: 0, tm: new Map() });
-    x.g++; x.w += r.w; x.k += r.k || 0; x.d += r.d || 0; x.a += r.a || 0;
+    x.g++; x.w += r.w; if (r.d == null) x.k = null; else { x.k += r.k || 0; x.d += r.d; x.a += r.a || 0; }
     const t = x.tm.get(r.tm) || { n: r.tn, g: 0 }; t.g++; x.tm.set(r.tm, t);
   }
-  const out = Object.values(m).map(({ tm, ...x }) => { const [id, t] = [...tm].sort((p, q) => q[1].g - p[1].g)[0]; return { ...x, tn: t.n, lo: S.teams[id]?.lo || "" }; });
+  const out = Object.values(m).map(({ tm, ...x }) => { const [id, t] = [...tm].sort((p, q) => q[1].g - p[1].g)[0]; return { ...x, tn: t.n || self?.n, lo: S.teams[id]?.lo || self?.lo || "" }; });
   for (const [y, v] of Object.entries(yrs || {})) if (!m[y]) out.push({ y: +y, g: v[0], w: v[1], k: v[2], d: v[3], a: v[4], tn: v[5], lo: v[6] });
   return out.sort((a, b) => b.y - a.y);
 }
@@ -995,7 +996,7 @@ async function teamPage(id) {
   page(`<div class="card"><div class="prof"><div class="avatar" style="background:#0b0d11">${S.teams[id]?.lo ? tLogo(id, 70) : esc(initials(d.n))}</div><div><h1>${esc(d.n)}</h1><div class="sub"><span class="pill">${esc(S.teams[id]?.lg || "")}</span><span class="faint">${esc(scopeName())}</span></div><div class="sub" style="margin-top:10px">${favBtn(fav)}</div></div>
     <div class="kpis">${donut(wr)}<div class="kpi"><b>${w}W ${rows.length - w}L</b><span>record</span></div><div class="kpi"><b>${pct(blue.reduce((s, r) => s + r.w, 0), blue.length)}%</b><span>blue side · ${blue.length}</span></div>
     <div class="kpi"><b>${pct(red.reduce((s, r) => s + r.w, 0), red.length)}%</b><span>red side · ${red.length}</span></div><div class="kpi"><b>${mmss(Math.round(avgLen))}</b><span>avg length</span></div></div></div></div>
-    <div class="grid2" style="margin-top:16px"><div class="stack">${seasonCard("#/team/" + id, seasonsOf(d.rows))}<div class="card"><h3>Roster</h3><div id="ro"></div></div><div class="card"><h3>Most picked</h3><div id="tp"></div></div>
+    <div class="grid2" style="margin-top:16px"><div class="stack">${seasonCard("#/team/" + id, seasonsOf(d.rows, S.teams[id]?.yrs, { n: d.n, lo: S.teams[id]?.lo }))}<div class="card"><h3>Roster</h3><div id="ro"></div></div><div class="card"><h3>Most picked</h3><div id="tp"></div></div>
       <div class="card"><h3>Head-to-head</h3><div id="th2h"></div></div>
       <div class="card"><h3>Most banned (by them)</h3><div class="iteml">${[...bans].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `<a class="row" href="${link("champion/" + c)}">${champImg(c, 26)}<span>${esc(cname(c))}</span><span class="n">${n}</span><span class="faint">${pct(n, rows.length)}%</span></a>`).join("")}</div></div></div>
     <div class="card"><h3>Games <span class="sp faint">${rows.length}</span></h3><div class="gl" id="tg"></div></div></div>`);
@@ -1110,6 +1111,7 @@ async function gamePage(t, gid) {
       <div>${tLogo(b.id, 56)}<h1 class="${b.win ? "" : "faint"}">${tLink(b.id, b.name)}</h1><div class="muted">${b.win ? "Victory" : "Defeat"} · red</div></div></div>
       <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a>${g.stage ? `<span class="pill">${esc(g.stage)}</span>` : ""}<span class="pill">${esc(g.date)}</span>${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
       ${series.length > 1 ? series.map((x, i) => `<a class="chip ${x.id == gid ? "on" : ""}" href="${gLink(t, x.id)}">Game ${i + 1}</a>`).join("") : ""}</div></div>
+    ${!g.x && isOldT(t) ? `<p class="faint" style="margin:12px 2px 0;font-size:12.5px">Gold graphs, timelines and builds are only tracked from 2026; earlier games come from Oracle's Elixir, which doesn't include them.</p>` : ""}
     ${g.x ? `<div class="seg" id="gtabs" style="margin-top:16px"><button data-t="ov" class="on">Overview</button><button data-t="tl">Gold & timeline</button><button data-t="bd">Builds</button></div>` : ""}
     <div id="gov"><div class="card" style="margin-top:16px;overflow:hidden">${scoreboard(g)}</div>
     <div class="card" style="margin-top:16px"><h3>All stats</h3><div class="scroll" id="fs"></div></div></div><div id="gx" hidden></div>`);

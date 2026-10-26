@@ -46,8 +46,10 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
   landing + tier-list season selects, loadLife() merges the old index on demand, rowsOf()/shardOf()/metaOf() loaders,
   Seasons card (op.gg past seasons) on player/team pages from index `yrs`. dist ≈ 301 MB.
 - 2016-2019 added 2026-10-26 (Drive quota had reset): 93,220 games 2014-2025, dist ≈ 356 MB (Pages limit 1 GB).
-  oracle.py writes gzip with mtime=0 so re-runs don't dirty git. SK Telecom T1 (2014-19 id) is still a separate
-  team from T1.
+  oracle.py writes gzip with mtime=0 so re-runs don't dirty git. build.py LINEAGE merges 17 rebrands (SKT->T1, Samsung->Gen.G,
+  Longzhu/Kingzone->DRX, ROX->HLE, Suning->WBG, ...); skipped Misfits->Heretics and MAD Lions KOI->Movistar KOI (Oracle
+  ids overlap with concurrent Spanish-league teams). 2026 team pages get yrs season tiles; old game pages explain the
+  missing gold/builds tabs.
 
 ## 2026-10-26 update
 - Renamed to pros.gg (display text, og.png, favicon). Domain not bought; URL unchanged.
