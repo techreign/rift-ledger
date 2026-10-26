@@ -50,6 +50,7 @@ nav.main a.on, nav.main a:hover { color: var(--text); background: var(--panel2);
 .sugg a.sel, .sugg a:hover { background: var(--panel2); color: var(--text); }
 .sugg small { color: var(--faint); margin-left: auto; }
 .scope { height: 36px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); padding: 0 8px; max-width: 220px; }
+.scope.season { max-width: 110px; color: var(--gold2); font-weight: 700; }
 
 /* layout bits */
 main { padding: 22px 0 60px; min-height: 70vh; }
@@ -101,6 +102,7 @@ body.home header .search { visibility: hidden; }
 .bigsearch { position: relative; flex: none; margin: 0 auto; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #4767ad; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); text-align: left; padding: 0 30px 0 36px; }
 .bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #9db8f0; }
 .bigsearch .lg { display: flex; flex-direction: column; justify-content: center; padding-right: 16px; width: 210px; flex: none; position: relative; }
+.bigsearch .lg.yr { width: 130px; padding-left: 18px; }
 .bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #d6e0f5; pointer-events: none; }
 .bigsearch label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
 .bigsearch .lg select { appearance: none; border: 0; background: transparent; color: #d6e0f5; font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
@@ -315,12 +317,12 @@ footer p { margin: 4px 0; }
   nav.main a { white-space: nowrap; padding: 6px 10px; font-size: 13px; }
 }
 @media (max-width: 640px) {
-  .bar { gap: 10px; } .logo span { display: none; } .scope { max-width: 110px; }
+  .bar { gap: 10px; } .logo span { display: none; } .scope { max-width: 110px; } .scope.season { max-width: 76px; }
   .prof { flex-wrap: wrap; } .kpis { margin-left: 0; gap: 16px; }
   .hero h1 { font-size: 26px; } .stat-row { margin-left: 0; }
   .landing { padding: 40px 16px 28px; } .biglogo { font-size: 30px; gap: 12px; } .biglogo i { width: 28px; height: 28px; border-width: 3px; } .biglogo i::after { inset: 5px; }
   .landing .tag { font-size: 13px; margin-bottom: 22px; }
-  .bigsearch { height: 60px; padding: 0 18px 0 22px; } .bigsearch .lg { width: 92px; padding-right: 8px; } .bigsearch .lg::after { right: 8px; } .bigsearch .q { padding: 0 12px; } .bigsearch button { font-size: 22px; }
+  .bigsearch { height: 60px; padding: 0 18px 0 22px; } .bigsearch .lg { width: 92px; padding-right: 8px; } .bigsearch .lg.yr { width: 74px; padding-left: 10px; } .bigsearch .lg::after { right: 8px; } .bigsearch .q { padding: 0 12px; } .bigsearch button { font-size: 22px; }
   .mh { grid-template-columns: 72px 1fr 28px; } .mh .kda { grid-column: 2; } .mh .champ { grid-column: 2; }
   .mh .meta { grid-row: span 2; } .mh .items { grid-column: 1 / 3; }
   .tbl .hide-s { display: none; }
@@ -340,23 +342,26 @@ footer p { margin: 4px 0; }
     <input id="q" placeholder="Search players, teams, champions" autocomplete="off" aria-label="Search">
     <div class="sugg" id="sugg" hidden></div>
   </div>
+  <select class="scope season" id="season" aria-label="Season"></select>
   <select class="scope" id="scope" aria-label="League or tournament filter"></select>
 </div></header>
 <main><div class="wrap" id="app"><div class="loading">Loading every pro game of 2026…</div></div></main>
 <footer><div class="wrap">
-  <p>pros.gg is a free fan project. Game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; images from Riot's Data Dragon.</p>
+  <p>pros.gg is a free fan project. 2026 game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; earlier seasons from <a href="https://oracleselixir.com" target="_blank" rel="noopener">Oracle's Elixir</a>; images from Riot's Data Dragon.</p>
   <p>pros.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
   <p id="built"></p>
 </div></footer>
 <script>
 "use strict";
-const S = { idx: null, cache: new Map(), scope: "", tours: {}, players: {}, teams: {}, champs: {} };
+const S = { idx: null, cache: new Map(), scope: "", season: "", tours: {}, players: {}, teams: {}, champs: {} };
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const J = (path) => {
   // index.json is re-checked every 10 minutes; everything else is keyed to the index's build stamp
   const v = path === "index.json" ? Math.floor(Date.now() / 6e5) : (S.idx?.v || S.idx?.n);
-  if (!S.cache.has(path)) S.cache.set(path, fetch("data/" + path + "?v=" + v).then((r) => { if (!r.ok) throw new Error(path + " " + r.status); return r.json(); })
+  // past seasons are stored gzipped (Pages' 1 GB cap) and inflated here
+  const body = (r) => (path.endsWith(".gz") ? new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).json() : r.json());
+  if (!S.cache.has(path)) S.cache.set(path, fetch("data/" + path + "?v=" + v).then((r) => { if (!r.ok) throw new Error(path + " " + r.status); return body(r); })
     .catch((e) => { if (!/ 404$/.test(e.message)) S.cache.delete(path); throw e; }));  // network errors can be retried
   return S.cache.get(path);
 };
@@ -401,27 +406,90 @@ const wrCls = (w) => (w >= 60 ? "wr-hi" : w < 45 ? "faint" : "");
 function ago(dt) {
   if (!dt) return "";
   const days = Math.round((Date.parse(S.idx.built) - Date.parse(dt)) / 864e5);
-  return days <= 0 ? "Latest day" : days === 1 ? "1 day ago" : days < 31 ? `${days} days ago` : new Date(dt).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return days <= 0 ? "Latest day" : days === 1 ? "1 day ago" : days < 31 ? `${days} days ago` : new Date(dt).toLocaleDateString(undefined, { month: "short", day: "numeric", ...(days > 300 && { year: "numeric" }) });
 }
 
 // ---------------- scope (league / tournament filter)
-const inScope = (t) => !S.scope || (S.scope.startsWith("t:") ? S.scope.slice(2) === t : S.tours[t] && "lg:" + S.tours[t].lg === S.scope);
-const scopeName = () => (!S.scope ? "All of 2026" : S.scope.startsWith("t:") ? S.tours[S.scope.slice(2)]?.n : S.scope.slice(3));
+// season: "" = 2026 (the default view, gol.gg data), "all" = every season, or a past year (Oracle's Elixir, loaded on demand)
+const CUR = 2026;
+const yearOf = (t) => S.tours[t]?.y ?? (+(/^(\d{4})-/.exec(t) || [])[1] || CUR);
+const isOldT = (t) => yearOf(t) < CUR;
+const inSeason = (t) => S.season === "all" || yearOf(t) === (+S.season || CUR);
+const inScope = (t) => inSeason(t) && (!S.scope || (S.scope.startsWith("t:") ? S.scope.slice(2) === t : S.tours[t] && "lg:" + S.tours[t].lg === S.scope));
+const seasonName = () => (S.season === "all" ? "All time" : String(S.season || CUR));
+const scopeName = () => (!S.scope ? (S.season === "all" ? "All seasons" : `All of ${seasonName()}`) : S.scope.startsWith("t:") ? S.tours[S.scope.slice(2)]?.n : S.scope.slice(3));
+const seasonTours = () => S.idx.tours.filter((t) => inSeason(t.s));
 function buildScope() {
-  const lgs = {}; for (const t of S.idx.tours) (lgs[t.lg] ||= []).push(t);
+  const lgs = {}; for (const t of seasonTours()) (lgs[t.lg] ||= []).push(t);
   const order = Object.entries(lgs).sort((a, b) => b[1].reduce((s, t) => s + t.g, 0) - a[1].reduce((s, t) => s + t.g, 0));
-  let h = `<option value="">All of 2026</option><optgroup label="Leagues">`;
+  let h = `<option value="">${S.season === "all" ? "All seasons" : "All of " + seasonName()}</option><optgroup label="Leagues">`;
   for (const [lg, ts] of order) h += `<option value="lg:${esc(lg)}">${esc(lg)} (${ts.reduce((s, t) => s + t.g, 0)})</option>`;
   h += `</optgroup><optgroup label="Tournaments">`;
-  for (const t of S.idx.tours) h += `<option value="t:${t.s}">${esc(t.n)}</option>`;
+  for (const t of seasonTours()) h += `<option value="t:${t.s}">${esc(t.n)}</option>`;
   $("#scope").innerHTML = h + "</optgroup>";
-  $("#scope").onchange = (e) => { S.scope = e.target.value; const [p] = location.hash.split("?"); location.hash = p + (S.scope ? "?s=" + encodeURIComponent(S.scope) : ""); };
+  $("#scope").onchange = (e) => { S.scope = e.target.value; const [p] = location.hash.split("?"); location.hash = p + scopeQ(); };
+  $("#season").innerHTML = seasonOpts();
+  $("#season").onchange = (e) => { const [p] = location.hash.split("?"); location.hash = p + (e.target.value ? "?y=" + e.target.value : ""); };
 }
-const scopeQ = () => (S.scope ? "?s=" + encodeURIComponent(S.scope) : "");
+const seasonOpts = () => S.idx.seasons.map((x) => `<option value="${x.y === CUR ? "" : x.y}">${x.y}</option>`).join("").replace("</option>", "</option><option value=\"all\">All time</option>");
+// filter params carried by every link: league/tournament scope and season
+const sq = () => ({ ...(S.scope && { s: S.scope }), ...(S.season && { y: S.season }) });
+const scopeQ = () => { const p = new URLSearchParams(sq()).toString(); return p ? "?" + p : ""; };
 const link = (path) => "#/" + path + scopeQ();
 const pLink = (id, n) => `<a href="${link("player/" + id)}">${esc(n)}</a>`;
 const tLink = (id, n, sz = 0) => sz ? `<a class="tl" href="${link("team/" + id)}">${tLogo(id, sz)}<span>${esc(n)}</span></a>` : `<a href="${link("team/" + id)}">${esc(n)}</a>`;
 const gLink = (t, g) => link(`game/${t}/${g}`);
+
+// ---------------- past seasons: merged into the index the first time a viewer leaves the 2026 view
+let LIFE = null;
+function loadLife() {
+  return (LIFE ||= J("h/index.json.gz").then((h) => {
+    for (const t of h.tours) S.tours[t.s] = t;
+    S.idx.tours = S.idx.tours.concat(h.tours);
+    const merge = (list, map, key, x) => { const cur = map[x[key]]; if (cur) { cur.by = { ...cur.by, ...x.by }; cur.g = (cur.g || 0) + (x.g || 0); } else { map[x[key]] = x; list.push(x); } };
+    for (const p of h.players) merge(S.idx.players, S.players, "id", p);
+    for (const t of h.teams) merge(S.idx.teams, S.teams, "id", t);
+    for (const c of h.champs) merge(S.idx.champs, S.champs, "c", c);
+    S.idx.recent = S.idx.recent.concat(h.recent);
+  }).catch((e) => { LIFE = null; throw e; }));
+}
+const miss = (e) => { if (/ 404$/.test(e.message)) return null; throw e; };
+// player / team / champion file: 2026 rows, plus earlier seasons when the view needs them (or the id has nothing in 2026)
+async function rowsOf(kind, id) {
+  const a = await J(`${kind}/${id}.json`).catch(miss);
+  const b = S.season || !a ? await J(`h/${kind}/${id}.json.gz`).catch(miss) : null;
+  if (!a && !b) throw new Error(`${kind}/${id} 404`);
+  return { ...(b || {}), ...(a || {}), rows: [...(a?.rows || []), ...(b?.rows || [])] };
+}
+const shardOf = (t) => J(isOldT(t) ? `g/${t}.json.gz` : `g/${t}.json`);
+let MERGED = null;
+async function metaOf() {
+  const m = await J("meta.json");
+  if (!S.season) return m;
+  const h = await J("h/meta.json.gz");
+  if (!MERGED) {
+    const patches = [...new Set([...m.patches, ...h.patches])], mp = m.patches.map((x) => patches.indexOf(x)), hp = h.patches.map((x) => patches.indexOf(x)), off = m.tours.length;
+    MERGED = { ...m, tours: m.tours.concat(h.tours), patches,
+      p: m.p.map(([c, ti, pi, ...r]) => [c, ti, mp[pi], ...r]).concat(h.p.map(([c, ti, pi, ...r]) => [c, ti + off, hp[pi], ...r])),
+      b: m.b.map(([c, ti, pi, v]) => [c, ti, mp[pi], v]).concat(h.b.map(([c, ti, pi, v]) => [c, ti + off, hp[pi], v])),
+      g: m.g.map(([ti, pi, v]) => [ti, mp[pi], v]).concat(h.g.map(([ti, pi, v]) => [ti + off, hp[pi], v])) };
+  }
+  return MERGED;
+}
+// op.gg's past-season badges: year -> [games, wins] from loaded rows, topped up with the index's per-year counts
+function seasonsOf(rows, yrs) {
+  const m = {};
+  for (const r of rows) { const y = yearOf(r.t); (m[y] ||= [0, 0]); m[y][0]++; m[y][1] += r.w; }
+  for (const [y, v] of Object.entries(yrs || {})) if (!m[y]) m[y] = v;
+  return Object.entries(m).map(([y, [g, w]]) => ({ y: +y, g, w })).sort((a, b) => b.y - a.y);
+}
+function seasonCard(base, rows, yrs) {
+  const ys = seasonsOf(rows, yrs); if (ys.length < 2) return "";
+  const cur = +S.season || (S.season ? 0 : CUR);
+  const href = (y) => base + (y ? "?y=" + y : "");
+  return `<div class="card"><h3>Seasons <span class="sp"><a class="${S.season === "all" ? "" : "faint"}" href="${href("all")}">All time${S.season === "all" ? " ✓" : " →"}</a></span></h3>
+    <div class="chips" style="padding:12px 14px">${ys.map((x) => `<a class="chip ${x.y === cur ? "on" : ""}" href="${href(x.y === CUR ? "" : x.y)}"><b>S${x.y}</b> <span class="faint">${x.w}W ${x.g - x.w}L</span> <span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span></a>`).join("")}</div></div>`;
+}
 
 // ---------------- generic sortable table
 function table(el, cols, rows, opts = {}) {
@@ -454,7 +522,7 @@ const scopeGames = () => S.idx.tours.filter((t) => inScope(t.s)).reduce((s, t) =
 
 // ---------------- match history row (shared by player + champion pages)
 function mhRow(r, opts = {}) {
-  const items = r.it.filter((i) => !TRINKETS.has(i)), trinket = r.it.find((i) => TRINKETS.has(i));
+  const it = r.it || [], items = it.filter((i) => !TRINKETS.has(i)), trinket = it.find((i) => TRINKETS.has(i));
   while (items.length < 6) items.push(0);
   const ratio = kdaR(r.k || 0, r.d || 0, r.a || 0), m = r.len / 60;
   const who = opts.showPlayer ? `<div><a class="tn" href="${link("player/" + r.p)}"><b>${esc(r.pn)}</b></a><span class="faint">· ${esc(r.tn)}</span></div>` : `<div><span class="role">${RL[r.r] || ""}</span>${tLink(r.tm, r.tn)}</div>`;
@@ -463,7 +531,7 @@ function mhRow(r, opts = {}) {
     <div class="champ">${champImg(r.c, 48)}<div class="col">${(r.sp || []).map((s) => spellImg(s)).join("")}</div><div class="col">${runeImg(r.ks, 24, "background:#000;border-radius:50%")}${runeImg(r.sub, 18, "margin:2px")}</div></div>
     <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.lvl ? `<span>Level ${r.lvl}</span>` : ""}</div>
     <div class="st"><span>CS ${r.cs} (${f1(r.cs / m)})</span><span>KP ${r.kp != null ? Math.round(r.kp) + "%" : "–"}</span><span>DMG ${kfmt(r.dmg)}</span><span>GD@15 <b class="${r.gd15 > 0 ? "good" : r.gd15 < 0 ? "bad" : ""}">${r.gd15 > 0 ? "+" : ""}${r.gd15 ?? "–"}</b></span></div>
-    <div class="items">${items.slice(0, 6).map((i) => itemImg(i)).join("")}${itemImg(trinket)}</div>
+    <div class="items">${it.length ? items.slice(0, 6).map((i) => itemImg(i)).join("") + itemImg(trinket) : ""}</div>
     <div class="vs">${who}<div><span class="faint">vs</span>${r.oc ? champImg(r.oc, 18, "ci r") : ""}${tLink(r.op, r.on, 16)}</div></div>
     <button class="xbtn" title="Full scoreboard" aria-label="Show full scoreboard">▾</button>
   </div>`;
@@ -473,7 +541,7 @@ function wireMh(el, focusPid) {
     const row = b.closest(".mh"), next = row.nextElementSibling;
     if (next && next.classList.contains("detail")) { next.remove(); b.textContent = "▾"; return; }
     const d = document.createElement("div"); d.className = "detail"; d.innerHTML = `<div class="loading">Loading game…</div>`; row.after(d); b.textContent = "▴";
-    const shard = await J(`g/${row.dataset.t}.json`); d.innerHTML = scoreboard(shard[row.dataset.g], +row.dataset.p || focusPid) + `<div style="padding:8px 14px;text-align:right"><a class="pill" href="${gLink(row.dataset.t, row.dataset.g)}">Open game page →</a></div>`;
+    const shard = await shardOf(row.dataset.t); d.innerHTML = scoreboard(shard[row.dataset.g], row.dataset.p || focusPid) + `<div style="padding:8px 14px;text-align:right"><a class="pill" href="${gLink(row.dataset.t, row.dataset.g)}">Open game page →</a></div>`;
   }));
 }
 
@@ -486,16 +554,16 @@ function scoreboard(g, focus) {
     return `<div class="sbh ${side ? "r" : "b"}"><span class="res">${t.win ? "Victory" : "Defeat"}</span><b>${tLink(t.id, t.name, 22)}</b><span class="muted">${side ? "Red side" : "Blue side"}</span>
       <div class="obj"><span>⚔ ${t.k}</span><span>🗼 ${t.tw}</span><span>🐉 ${drakes}</span><span>Baron ${t.bn}</span><span>${kfmt(t.gold)} gold</span><span class="bans">Bans ${t.bi.map((c) => champImg(c, 20)).join("")}</span></div></div>
       <div class="scroll"><table class="tbl sbt"><tbody>${ps.map((p) => {
-        const items = p.it.filter((i) => !TRINKETS.has(i)), tr = p.it.find((i) => TRINKETS.has(i)); while (items.length < 6) items.push(0);
+        const it = p.it || [], items = it.filter((i) => !TRINKETS.has(i)), tr = it.find((i) => TRINKETS.has(i)); while (items.length < 6) items.push(0);
         const st = p.st || {}, m = g.len / 60;
-        return `<tr class="${p.pid === focus ? "me" : ""}"><td><div class="who">${champImg(p.ci, 34)}<div style="display:grid;gap:2px">${(p.sp || []).map((s) => spellImg(s, 16)).join("")}</div><div style="display:grid;gap:2px">${runeImg(p.ks, 16)}${runeImg(p.sub, 14)}</div>
+        return `<tr class="${focus != null && String(p.pid) === String(focus) ? "me" : ""}"><td><div class="who">${champImg(p.ci, 34)}<div style="display:grid;gap:2px">${(p.sp || []).map((s) => spellImg(s, 16)).join("")}</div><div style="display:grid;gap:2px">${runeImg(p.ks, 16)}${runeImg(p.sub, 14)}</div>
           <div><a class="pn" href="${link("player/" + p.pid)}">${esc(p.n)}</a><div class="role">${RL[p.role] || ""}</div></div></div></td>
           <td><b>${p.k}/${p.d}/${p.a}</b><div class="faint" style="font-size:12px">${p.d ? f2(kdaR(p.k, p.d, p.a)) : "Perfect"} KDA · KP ${st.kp != null ? Math.round(st.kp) + "%" : "–"}</div></td>
           <td class="hide-s">${kfmt(st.dmg)}<div class="dbar"><i style="width:${(100 * (st.dmg || 0)) / maxD}%"></i></div></td>
           <td class="hide-s">${kfmt(st.gold)}<div class="faint" style="font-size:12px">gold</div></td>
           <td>${p.cs}<div class="faint" style="font-size:12px">${f1(p.cs / m)}/m</div></td>
           <td class="hide-s">${st.vs != null ? Math.round(st.vs) : "–"}<div class="faint" style="font-size:12px">vision</div></td>
-          <td><div class="items">${items.slice(0, 6).map((i) => itemImg(i, 24)).join("")}${itemImg(tr, 24)}</div></td></tr>`;
+          <td><div class="items">${it.length ? items.slice(0, 6).map((i) => itemImg(i, 24)).join("") + itemImg(tr, 24) : ""}</div></td></tr>`;
       }).join("")}</tbody></table></div>`;
   }).join("")}</div>`;
 }
@@ -509,15 +577,17 @@ async function home() {
   const recent = S.idx.recent.filter((g) => inScope(g.t)).slice(0, 14);
   const champs = S.idx.champs.map((c) => { let p = 0, w = 0, b = 0; for (const [t, v] of Object.entries(c.by)) if (inScope(t)) { p += v[0]; w += v[1]; b += v[2]; } return { c: c.c, p, w, b, pr: pct(p + b, ng) }; })
     .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr).slice(0, 12);
-  const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= Math.min(15, Math.max(5, ng / 120))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
-  const lgs = {}; for (const t of S.idx.tours) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
+  const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= (S.season === "all" ? 100 : Math.min(15, Math.max(5, ng / 120)))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
+  const lgs = {}; for (const t of seasonTours()) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
+  const np = S.idx.players.filter((p) => sumBy(p.by)[0]).length;
   page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>PROS.GG</div>
-    <div class="tag">Every pro League of Legends game of 2026 — match histories, builds and stats.</div>
-    <div class="bigsearch search"><div class="lg"><label for="hscope">Region</label><select id="hscope">${$("#scope").innerHTML.replace(">All of 2026<", ">All<")}</select></div><span class="div"></span>
+    <div class="tag">${S.season === "all" ? `Every pro League of Legends game since ${S.idx.seasons.at(-1).y}` : `Every pro League of Legends game of ${seasonName()}`} — match histories, builds and stats.</div>
+    <div class="bigsearch search"><div class="lg"><label for="hscope">Region</label><select id="hscope">${$("#scope").innerHTML.replace(/^<option value="">[^<]*</, '<option value="">All<')}</select></div><span class="div"></span>
+      <div class="lg yr"><label for="hseason">Season</label><select id="hseason">${seasonOpts()}</select></div><span class="div"></span>
       <div class="q"><label for="hq">Search</label><input id="hq" placeholder="Pro player, team or champion" autocomplete="off"></div>
       <button id="hgo" aria-label="Search">.GG</button><div class="sugg" id="hsugg" hidden></div></div>
-    <div class="chips">${Object.entries(lgs).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([lg, n]) => `<a class="chip ${S.scope === "lg:" + lg ? "on" : ""}" href="#/${"?s=" + encodeURIComponent("lg:" + lg)}">${esc(lg)} <span class="faint">${n}</span></a>`).join("")}${S.scope ? `<a class="chip" href="#/">Clear filter ✕</a>` : ""}</div>
-    <div class="counts"><b>${S.idx.n.toLocaleString()}</b> games · <b>${S.idx.players.length.toLocaleString()}</b> players · <b>${S.idx.tours.length}</b> tournaments · <b>${Object.keys(lgs).length}</b> leagues · patch <b>${S.idx.patches[0] || ""}</b></div></section>
+    <div class="chips">${Object.entries(lgs).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([lg, n]) => `<a class="chip ${S.scope === "lg:" + lg ? "on" : ""}" href="#/?${new URLSearchParams({ s: "lg:" + lg, ...(S.season && { y: S.season }) })}">${esc(lg)} <span class="faint">${n}</span></a>`).join("")}${S.scope ? `<a class="chip" href="#/${S.season ? "?y=" + S.season : ""}">Clear filter ✕</a>` : ""}</div>
+    <div class="counts"><b>${ng.toLocaleString()}</b> games · <b>${np.toLocaleString()}</b> players · <b>${seasonTours().filter((t) => inScope(t.s)).length}</b> tournaments · <b>${Object.keys(lgs).length}</b> leagues${S.season ? "" : ` · patch <b>${S.idx.patches[0] || ""}</b>`}</div></section>
     <div class="grid2b"><div class="card"><h3>Latest games <span class="sp faint">${esc(scopeName())}</span></h3><div class="gl">${recent.map(gameLine).join("") || `<div class="empty">No games.</div>`}</div></div>
     <div class="stack"><div class="card"><h3>Champion meta <span class="sp faint">presence · ${ng.toLocaleString()} games</span></h3><div id="hc"></div></div>
     <div class="card"><h3>Best KDA <span class="sp faint">${S.scope ? esc(scopeName()) : "major leagues"}</span></h3><div id="hp"></div></div></div></div>`);
@@ -533,8 +603,9 @@ async function home() {
     { k: "g", h: "Games", num: 1, f: (x) => x.s[0] },
     { k: "kda", h: "KDA", num: 1, f: (x) => { const r = kdaR(x.s[2], x.s[3], x.s[4]); return `<b class="${kdaCls(r)}">${f2(r)}</b>`; } },
   ], pl, { page: 10 });
-  $("#hscope").value = S.scope;
-  $("#hscope").onchange = (e) => { location.hash = "#/" + (e.target.value ? "?s=" + encodeURIComponent(e.target.value) : ""); };
+  $("#hscope").value = S.scope; $("#hseason").value = S.season;
+  $("#hscope").onchange = (e) => { location.hash = "#/?" + new URLSearchParams({ ...(e.target.value && { s: e.target.value }), ...(S.season && { y: S.season }) }); };
+  $("#hseason").onchange = (e) => { location.hash = "#/" + (e.target.value ? "?y=" + e.target.value : ""); };
   $("#hgo").onclick = wireSearch($("#hq"), $("#hsugg"));
 }
 const sumBy = (by) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (inScope(t)) v.forEach((x, i) => (s[i] += x)); return s; };
@@ -552,7 +623,7 @@ function playersPage(q) {
   const rows = S.idx.players.map((p) => { const s = sumBy(p.by); return { p, n: p.n, r: p.r, g: s[0], w: s[1], wr: pct(s[1], s[0]), kda: kdaR(s[2], s[3], s[4]), k: s[2] / s[0], d: s[3] / s[0], a: s[4] / s[0], csm: s[5] / (s[6] / 60 || 1) }; })
     .filter((x) => x.g >= Math.max(1, minG) && (!role || x.r === role));
   page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Players</h1><span class="sp muted">${esc(scopeName())} · ${rows.length} players</span></div>
-    <div class="chips" style="margin-bottom:12px">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="#/players?${new URLSearchParams({ ...(r && { role: r }), ...(S.scope && { s: S.scope }), min: minG })}">${r ? RL[r] : "All roles"}</a>`).join("")}
+    <div class="chips" style="margin-bottom:12px">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="#/players?${new URLSearchParams({ ...(r && { role: r }), ...sq(), min: minG })}">${r ? RL[r] : "All roles"}</a>`).join("")}
     <span class="pill" style="margin-left:auto">Min games <select id="ming" style="background:none;border:0">${[1, 3, 5, 10, 20, 40].map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
     <div class="card" id="pt"></div>`);
   $("#ming").onchange = (e) => { const p = new URLSearchParams(q); p.set("min", e.target.value); location.hash = "#/players?" + p; };
@@ -571,7 +642,7 @@ function playersPage(q) {
 }
 
 async function champsPage(q) {
-  const meta = await J("meta.json");
+  const meta = await metaOf();
   const role = q.get("role") || "", pa = q.get("pa") || "";
   const ri = role ? meta.roles.indexOf(role) : -1;
   const okT = (ti) => inScope(meta.tours[ti]), okP = (pi) => !pa || meta.patches[pi] === pa;
@@ -588,14 +659,14 @@ async function champsPage(q) {
   const cut = [0.06, 0.2, 0.45, 0.75];
   rows.forEach((x, i) => { const f = i / rows.length; x.rank = i + 1; x.tier = f < cut[0] ? 0 : f < cut[1] ? 1 : f < cut[2] ? 2 : f < cut[3] ? 3 : 4; });
   const patches = meta.patches.filter((x, pi) => x && meta.g.some(([ti, p2]) => p2 === pi && okT(ti))).sort((x, y) => cmpPatch(y, x));
-  const qs = (o) => "#/champions?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, ...o }).filter(([, v]) => v)));
+  const qs = (o) => "#/champions?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, y: S.season, ...o }).filter(([, v]) => v)));
   // season / league / tournament filters drive the same scope as the header select
   const curLg = S.scope.startsWith("lg:") ? S.scope.slice(3) : S.scope.startsWith("t:") ? S.tours[S.scope.slice(2)]?.lg || "" : "";
-  const lgs = [...new Set(S.idx.tours.map((t) => t.lg))].sort(), tours = S.idx.tours.filter((t) => !curLg || t.lg === curLg);
+  const lgs = [...new Set(seasonTours().map((t) => t.lg))].sort(), tours = seasonTours().filter((t) => !curLg || t.lg === curLg);
   const opt = (v, n, on) => `<option value="${esc(v)}" ${on ? "selected" : ""}>${esc(n)}</option>`;
   page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Champion tier list</h1><span class="sp muted">${esc(scopeName())}${pa ? " · patch " + esc(pa) : ""} · ${ng.toLocaleString()} games</span></div>
     <div class="chips" style="margin-bottom:10px;align-items:center">
-      <select class="fsel" aria-label="Season"><option>Season 2026</option></select>
+      <select class="fsel" id="tse" aria-label="Season">${seasonOpts().replace(/>(\d{4})</g, ">Season $1<")}</select>
       <select class="fsel" id="tlg" aria-label="League">${opt("", "All leagues", !curLg)}${lgs.map((l) => opt("lg:" + l, l, l === curLg)).join("")}</select>
       <select class="fsel" id="ttr" aria-label="Tournament" style="max-width:260px">${opt(curLg ? "lg:" + curLg : "", "All tournaments", !S.scope.startsWith("t:"))}${tours.map((t) => opt("t:" + t.s, t.n, S.scope === "t:" + t.s)).join("")}</select>
       <select class="fsel" id="tpa" aria-label="Patch"><option value="">All patches</option>${patches.map((x) => `<option ${x === pa ? "selected" : ""}>${x}</option>`).join("")}</select></div>
@@ -603,6 +674,7 @@ async function champsPage(q) {
     <div class="card" id="ct"></div><p class="faint" style="font-size:12px">Tier = presence (picks + bans) with a small, sample-size-damped win-rate adjustment; S is the top 6%, then A 14%, B 25%, C 30%, D the rest.</p>`);
   $("#tpa").onchange = (e) => { location.hash = qs({ pa: e.target.value }); };
   $("#tlg").onchange = $("#ttr").onchange = (e) => { location.hash = qs({ s: e.target.value, pa: "" }); };
+  $("#tse").value = S.season; $("#tse").onchange = (e) => { location.hash = qs({ y: e.target.value, s: "", pa: "" }); };
   table($("#ct"), [
     { k: "rank", h: "#", v: (x) => -x.rank, f: (x) => `<span class="faint">${x.rank}</span>` },
     { k: "tier", h: "Tier", v: (x) => -x.tier, f: (x) => `<span class="tier t${x.tier}">${"SABCD"[x.tier]}</span>` },
@@ -624,22 +696,22 @@ const LB = {
 };
 // top-flight leagues + international events; without a filter, rankings use only these so 20-game KDA
 // stat-padders from regional leagues don't outrank LCK/LPL starters
-const MAJOR = /^(LCK|LCK Cup|LPL|LEC|LCS|LCP|CBLOL|CBLOL Cup|Americas Cup|MSI|Worlds|First Stand|Esports World Cup)$/;
+const MAJOR = /^(LCK|LCK Cup|LPL|LEC|LCS|LCP|CBLOL|CBLOL Cup|Americas Cup|MSI|Worlds|First Stand|Esports World Cup|EU LCS|NA LCS|LMS|LTA|LTA North|LTA South)$/;
 const majorOnly = (q) => !S.scope && q.get("lv") !== "all";
 const sumIf = (by, pred) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (pred(t)) v.forEach((x, i) => (s[i] += x)); return s; };
-const sumMajor = (by) => sumIf(by, (t) => MAJOR.test(S.tours[t]?.lg || ""));
+const sumMajor = (by) => sumIf(by, (t) => inSeason(t) && MAJOR.test(S.tours[t]?.lg || ""));
 function leaderPage(q) {
   const role = q.get("role") || "mid", stat = LB[q.get("stat")] ? q.get("stat") : "kda", maj = majorOnly(q);
-  const ng = scopeGames(), minG = +(q.get("min") ?? (S.scope && ng < 2000 ? 5 : 15));
+  const ng = scopeGames(), minG = +(q.get("min") ?? (S.season === "all" && !S.scope ? 100 : S.scope && ng < 2000 ? 5 : 15));
   const [lbl, fn, fmt] = LB[stat];
   const rows = S.idx.players.filter((p) => p.r === role).map((p) => { const s = maj ? sumMajor(p.by) : sumBy(p.by); return { p, g: s[0], v: s[0] ? fn(s) : NaN, s }; })
     .filter((x) => x.g >= minG && Number.isFinite(x.v)).sort((a, b) => b.v - a.v);
-  const qs = (o) => "#/leaderboard?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, stat, min: minG, s: S.scope, lv: q.get("lv"), ...o }).filter(([, v]) => v !== "" && v != null)));
+  const qs = (o) => "#/leaderboard?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, stat, min: minG, s: S.scope, y: S.season, lv: q.get("lv"), ...o }).filter(([, v]) => v !== "" && v != null)));
   const pod = rows.slice(0, 3);
   page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Leaderboards</h1><span class="sp muted">${maj ? "Major leagues + internationals" : esc(scopeName())} · ${RL[role]} · min ${minG} games</span></div>
     <div class="chips" style="margin-bottom:10px;align-items:center">${ROLES.map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${RL[r]}</a>`).join("")}
       ${S.scope ? "" : `<span class="seg" style="margin-left:12px"><a class="${maj ? "on" : ""}" href="${qs({ lv: "" })}" title="LCK, LPL, LEC, LCS, LCP, CBLOL + MSI, Worlds, First Stand, EWC">Major leagues</a><a class="${maj ? "" : "on"}" href="${qs({ lv: "all" })}">All leagues</a></span>`}
-      <span class="pill" style="margin-left:auto">Min games <select id="lbm" style="background:none;border:0">${[3, 5, 10, 15, 25, 40].map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
+      <span class="pill" style="margin-left:auto">Min games <select id="lbm" style="background:none;border:0">${[...new Set([3, 5, 10, 15, 25, 40, 100, 250, minG])].sort((a, b) => a - b).map((n) => `<option ${n === minG ? "selected" : ""}>${n}</option>`).join("")}</select></span></div>
     <div class="chips" style="margin-bottom:16px">${Object.entries(LB).map(([k, [l]]) => `<a class="chip ${k === stat ? "on" : ""}" href="${qs({ stat: k })}">${l}</a>`).join("")}</div>
     <div class="podium">${[1, 0, 2].map((i) => pod[i] ? `<a class="pod p${i}" href="${link("player/" + pod[i].p.id)}"><span class="pos">${i + 1}</span>${pPhoto(pod[i].p, i ? 72 : 92)}<b>${esc(pod[i].p.n)}</b><span class="tl">${tLogo(pod[i].p.tm, 16)}<span class="faint">${esc(pod[i].p.tn)}</span></span><em>${fmt(pod[i].v)}</em><small class="faint">${lbl} · ${pod[i].g} games</small></a>` : "").join("")}</div>
     <div class="card" id="lbt"></div>`);
@@ -659,7 +731,7 @@ function leaderPage(q) {
 async function h2hPage(kind, a, b) {
   if (kind !== "team" && kind !== "player") { [kind, a, b] = ["player", kind, a]; }
   if (kind === "team") return h2hTeam(a, b);
-  const [pa, pb] = await Promise.all([J(`p/${a}.json`), J(`p/${b}.json`)]);
+  const [pa, pb] = await Promise.all([rowsOf("p", a), rowsOf("p", b)]);
   const rows = pa.rows.filter((r) => r.opp == b && inScope(r.t)), theirs = new Map(pb.rows.map((r) => [r.g, r]));
   const ra = agg(rows), rb = agg(rows.map((r) => theirs.get(r.g)).filter(Boolean));
   const A = S.players[a] || { n: pa.n }, B = S.players[b] || { n: pb.n };
@@ -670,10 +742,10 @@ async function h2hPage(kind, a, b) {
     ${rows.length ? `<table class="tbl cmp"><tbody>${line("KDA", ra.kda, rb.kda, f2)}${line("Kills / game", ra.k / ra.g, rb.k / (rb.g || 1))}${line("Deaths / game", ra.d / ra.g, rb.d / (rb.g || 1), f1, -1)}
       ${line("CS / min", ra.csm, rb.csm)}${line("Damage / min", ra.dpm, rb.dpm, Math.round)}${line("Gold diff @15", ra.gd15, rb.gd15, (v) => (Number.isFinite(v) ? Math.round(v) : "–"))}${line("Kill participation", ra.kpa, rb.kpa, (v) => (Number.isFinite(v) ? Math.round(v) + "%" : "–"))}</tbody></table>` : ""}</div>
     <div class="card" style="margin-top:16px"><h3>Games <span class="sp faint">${esc(A.n)}'s side</span></h3><div class="mhs" id="mh"></div></div>`);
-  mhList($("#mh"), rows, { focus: +a });
+  mhList($("#mh"), rows, { focus: a });
 }
 async function h2hTeam(a, b) {
-  const d = await J(`t/${a}.json`);
+  const d = await rowsOf("t", a);
   const rows = d.rows.filter((r) => r.op == b && inScope(r.t)), w = rows.reduce((s, r) => s + r.w, 0);
   const A = S.teams[a] || { n: d.n }, B = S.teams[b] || { n: rows[0]?.on || "" };
   const picks = (key) => { const m = new Map(); for (const r of rows) for (const c of r[key]) m.set(c, (m.get(c) || 0) + 1); return [...m].sort((x, y) => y[1] - x[1]).slice(0, 8).map(([c, n]) => `<span class="pc">${champImg(c, 28)}<small>${n}</small></span>`).join(""); };
@@ -705,7 +777,7 @@ function comparePage(q) {
     const want = $("#msq").value.split(/[\n,]+/).map((x) => x.trim()).filter(Boolean).slice(0, 10), out = [], miss = [];
     for (const w of want) { const l = w.toLowerCase(); const hit = S.idx.players.filter((p) => p.n.toLowerCase() === l)[0] || S.idx.players.filter((p) => p.n.toLowerCase().startsWith(l))[0]; hit ? out.push(hit.id) : miss.push(w); }
     if (miss.length) $("#msn").textContent = "Not found: " + miss.join(", ");
-    if (out.length) location.hash = "#/compare?" + new URLSearchParams({ ids: [...new Set(out)].join(","), ...(S.scope && { s: S.scope }) });
+    if (out.length) location.hash = "#/compare?" + new URLSearchParams({ ids: [...new Set(out)].join(","), ...sq() });
   };
   if (!ids.length) return;
   const cols = ids.map((i) => ({ p: S.players[i], s: sumBy(S.players[i].by) }));
@@ -716,7 +788,7 @@ function comparePage(q) {
     ${row("Win rate", LB.wr[1], LB.wr[2])}${row("KDA", LB.kda[1], LB.kda[2])}${row("Kills / game", (s) => s[2] / s[0], f1)}${row("Deaths / game", (s) => s[3] / s[0], f1, -1)}${row("Assists / game", (s) => s[4] / s[0], f1)}
     ${row("CS / min", LB.csm[1], LB.csm[2])}${row("Gold / min", LB.gpm[1], LB.gpm[2])}${row("Damage / min", LB.dpm[1], LB.dpm[2])}${row("Gold diff @15", LB.gd15[1], LB.gd15[2])}${row("Kill participation", LB.kp[1], LB.kp[2])}${row("Vision / min", LB.vspm[1], LB.vspm[2])}
     <tr><td class="muted">Most played</td>${cols.map((c) => `<td class="n"><div class="mini" style="justify-content:flex-end">${c.p.top.map((x) => champImg(x, 24)).join("")}</div></td>`).join("")}</tr>
-    <tr><td></td>${cols.map((c) => `<td class="n"><a class="faint" href="#/compare?${new URLSearchParams({ ids: ids.filter((i) => i != c.p.id).join(","), ...(S.scope && { s: S.scope }) })}">remove ✕</a></td>`).join("")}</tr></tbody></table></div>`;
+    <tr><td></td>${cols.map((c) => `<td class="n"><a class="faint" href="#/compare?${new URLSearchParams({ ids: ids.filter((i) => i != c.p.id).join(","), ...sq() })}">remove ✕</a></td>`).join("")}</tr></tbody></table></div>`;
 }
 
 function teamsPage() {
@@ -733,28 +805,31 @@ function teamsPage() {
 const initials = (n) => (n.match(/[A-Z0-9]/g) || [n[0]]).slice(0, 3).join("") || n.slice(0, 2).toUpperCase();
 
 function toursPage() {
-  const lgs = groupBy(S.idx.tours, "lg");
+  const lgs = groupBy(seasonTours(), "lg");
   const order = [...lgs].sort((a, b) => b[1].reduce((s, t) => s + t.g, 0) - a[1].reduce((s, t) => s + t.g, 0));
-  page(`<h1 style="margin-bottom:14px">Tournaments</h1><div class="grid2b">${order.map(([lg, ts]) => `<div class="card"><h3>${esc(lg)}<span class="sp faint">${ts.reduce((s, t) => s + t.g, 0)} games</span></h3>
+  page(`<h1 style="margin-bottom:14px">Tournaments <span class="faint" style="font-size:15px;font-weight:600">${esc(seasonName())}</span></h1><div class="grid2b">${order.map(([lg, ts]) => `<div class="card"><h3>${esc(lg)}<span class="sp faint">${ts.reduce((s, t) => s + t.g, 0)} games</span></h3>
     <div class="scroll"><table class="tbl"><tbody>${ts.map((t) => `<tr><td><a href="#/t/${t.s}"><b>${esc(t.n)}</b></a></td><td class="muted hide-s">${esc(t.a)} → ${esc(t.b)}</td><td class="n">${t.g} games</td></tr>`).join("")}</tbody></table></div></div>`).join("")}</div>`);
 }
 
 async function playerPage(id, q) {
-  const d = await J(`p/${id}.json`), me = S.players[id] || {};
+  const d = await rowsOf("p", id), me = S.players[id] || {};
   const tsel = q.get("tr") || "";
   const all = d.rows.filter((r) => inScope(r.t));
+  const seas = seasonCard("#/player/" + id, d.rows, me.yrs);
+  if (!all.length) return page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : esc(monoTxt(d.n))}</div><div><h1>${esc(d.n)}</h1>
+    <div class="sub"><span class="faint">No pro games in ${esc(scopeName())}.</span> ${S.season === "all" ? "" : `<a class="star" href="#/player/${id}?y=all">See all time →</a>`}</div></div></div></div><div style="margin-top:16px">${seas}</div>`);
   const rows = tsel ? all.filter((r) => r.t === tsel) : all;
   const a = agg(rows), last = d.rows[0];
   remember({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) });
   page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : esc(monoTxt(me.n))}</div>
-      <div><h1>${esc(d.n)}</h1><div class="sub"><span class="role">${RL[mainRole(d.rows)]}</span>${tLink(last.tm, last.tn, 20)}<span class="pill">${esc(S.tours[last.t]?.lg || "")}</span><span class="faint">${d.rows.length} games in 2026</span></div>
+      <div><h1>${esc(d.n)}</h1><div class="sub"><span class="role">${RL[mainRole(d.rows)]}</span>${tLink(last.tm, last.tn, 20)}<span class="pill">${esc(S.tours[last.t]?.lg || "")}</span><span class="faint">${d.rows.filter((r) => inSeason(r.t)).length} games · ${esc(seasonName())}</span></div>
       <div class="sub" style="margin-top:10px">${favBtn({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) })}<a class="star" href="#/compare?ids=${id}">⇄ Compare</a></div></div>
       <div class="kpis">${donut(a.wr)}<div class="kpi"><b>${a.w}W ${a.g - a.w}L</b><span>${esc(tsel ? S.tours[tsel].n : scopeName())}</span></div>
       <div class="kpi"><b class="${kdaCls(a.kda)}">${f2(a.kda)}</b><span>KDA · ${f1(a.k / (a.g || 1))}/${f1(a.d / (a.g || 1))}/${f1(a.a / (a.g || 1))}</span></div>
       <div class="kpi"><b>${f1(a.csm)}</b><span>CS / min</span></div><div class="kpi"><b>${Number.isFinite(a.kpa) ? Math.round(a.kpa) + "%" : "–"}</b><span>Kill part.</span></div>
       <div class="kpi"><b>${Math.round(a.dpm)}</b><span>DMG / min</span></div><div class="kpi"><b class="${a.gd15 > 0 ? "good" : a.gd15 < 0 ? "bad" : ""}">${Number.isFinite(a.gd15) ? (a.gd15 > 0 ? "+" : "") + Math.round(a.gd15) : "–"}</b><span>GD@15</span></div></div></div>
 </div>
-    <div class="grid2" style="margin-top:16px"><div class="stack">${rankCards(id, all, tsel)}<div class="card"><h3>Champion pool${tsel ? ` <span class="sp faint">${esc(S.tours[tsel].n)}</span>` : ""}</h3><div id="pool"></div></div>
+    <div class="grid2" style="margin-top:16px"><div class="stack">${rankCards(id, all, tsel, seas)}<div class="card"><h3>Champion pool${tsel ? ` <span class="sp faint">${esc(S.tours[tsel].n)}</span>` : ""}</h3><div id="pool"></div></div>
       <div class="card"><h3>Played with <span class="sp faint">teammates</span></h3><div id="pw"></div></div>
       <div class="card"><h3>Lane opponents <span class="sp faint">head-to-head</span></h3><div id="lo"></div></div>
       <div class="card"><h3>By role</h3><div id="proles"></div></div></div>
@@ -792,7 +867,7 @@ async function playerPage(id, q) {
     $("#fcount").textContent = `${fr.length} games`;
     $("#sum20").innerHTML = summary20(fr);
     $("#form").innerHTML = formGraph(fr);
-    mhList($("#mh"), fr, { focus: +id });
+    mhList($("#mh"), fr, { focus: id });
   };
   $("#fres").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; f.res = b.dataset.v; $("#fres").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b)); draw(); };
   $("#fch").onchange = (e) => { f.c = e.target.value; draw(); };
@@ -829,7 +904,7 @@ function roleRank(id, role, stat) {  // stat(p) -> [g,w,k,d,a,cs,sec] or null; r
   const pool = peers.filter((x) => x.s[0] >= minG).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4]));
   return `#${pool.findIndex((x) => x.id == id) + 1} of ${pool.length} ${RL[role]} by KDA`;
 }
-function rankCards(id, all, tsel) {
+function rankCards(id, all, tsel, seas = "") {
   if (!all.length) return "";
   const tours = [...groupBy(all, "t")], role = mainRole(all);
   const tag = (t) => { const w = (S.tours[t]?.lg || "").split(/\s+/).filter((x) => !/^\d+$/.test(x)); return esc(w.length < 2 ? w[0] : /^[A-Z0-9]{2,}$/.test(w[0]) ? w[0] : w.map((x) => x[0]).join("").toUpperCase()); };
@@ -839,10 +914,10 @@ function rankCards(id, all, tsel) {
   const [ct, crs] = tours.find(([t]) => t === tsel) || tours[0], ca = agg(crs), sa = agg(all);
   const teams = [...new Set(all.map((r) => r.tn))];
   return box("", tag(ct), tsel ? "Selected tournament" : "Current tournament", esc(S.tours[ct].n), tLink(crs[0].tm, crs[0].tn), roleRank(id, role, (p) => p.by[ct]), ca)
-    + (tours.length > 1 ? box("sea", "2026", `Season <b>${esc(scopeName())}</b>`, `${tours.length} tournaments`, teams.map(esc).join(" → "), roleRank(id, role, (p) => { const s = sumBy(p.by); return s[0] ? s : null; }), sa) : "")
-    + `<div class="card"><h3>Tournaments <span class="sp"><a class="faint" href="${link("player/" + id)}">${tsel ? "Show all ✕" : ""}</a></span></h3><div class="past">${tours.map(([t, rs]) => { const a = agg(rs);
-      return `<a class="${tsel === t ? "on" : ""}" href="#/player/${id}?${new URLSearchParams({ tr: t, ...(S.scope && { s: S.scope }) })}"><span class="tg">${tag(t)}</span>
-        <span class="nm"><b>${esc(S.tours[t].n)}</b><span>${esc(rs[0].tn)} · ${ago(rs[0].dt)}</span></span><span class="rec"><span>${a.w}W ${a.g - a.w}L</span><span class="${wrCls(a.wr)}">${a.wr}%</span></span></a>`; }).join("")}</div></div>`;
+    + (tours.length > 1 ? box("sea", S.season === "all" ? "ALL" : seasonName(), `Season <b>${esc(scopeName())}</b>`, `${tours.length} tournaments`, teams.map(esc).join(" → "), roleRank(id, role, (p) => { const s = sumBy(p.by); return s[0] ? s : null; }), sa) : "")
+    + seas + (S.season === "all" && !tsel ? "" : `<div class="card"><h3>Tournaments <span class="sp"><a class="faint" href="${link("player/" + id)}">${tsel ? "Show all ✕" : ""}</a></span></h3><div class="past">${tours.map(([t, rs]) => { const a = agg(rs);
+      return `<a class="${tsel === t ? "on" : ""}" href="#/player/${id}?${new URLSearchParams({ tr: t, ...sq() })}"><span class="tg">${tag(t)}</span>
+        <span class="nm"><b>${esc(S.tours[t].n)}</b><span>${esc(rs[0].tn)} · ${ago(rs[0].dt)}</span></span><span class="rec"><span>${a.w}W ${a.g - a.w}L</span><span class="${wrCls(a.wr)}">${a.wr}%</span></span></a>`; }).join("")}</div></div>`);
 }
 const mainRole = (rows) => [...groupBy(rows, "r")].sort((a, b) => b[1].length - a[1].length)[0][0];
 function mhList(el, rows, opts) {
@@ -853,7 +928,7 @@ function mhList(el, rows, opts) {
 }
 
 async function teamPage(id) {
-  const d = await J(`t/${id}.json`);
+  const d = await rowsOf("t", id);
   const rows = d.rows.filter((r) => inScope(r.t));
   const w = rows.reduce((s, r) => s + r.w, 0), wr = pct(w, rows.length);
   const roster = new Map(); for (const r of rows) for (const [pid, n, role] of r.ro) { const x = roster.get(pid) || { pid, n, role, g: 0, w: 0, last: r.dt }; x.g++; x.w += r.w; roster.set(pid, x); }
@@ -866,7 +941,7 @@ async function teamPage(id) {
   page(`<div class="card"><div class="prof"><div class="avatar" style="background:#0b0d11">${S.teams[id]?.lo ? tLogo(id, 70) : esc(initials(d.n))}</div><div><h1>${esc(d.n)}</h1><div class="sub"><span class="pill">${esc(S.teams[id]?.lg || "")}</span><span class="faint">${esc(scopeName())}</span></div><div class="sub" style="margin-top:10px">${favBtn(fav)}</div></div>
     <div class="kpis">${donut(wr)}<div class="kpi"><b>${w}W ${rows.length - w}L</b><span>record</span></div><div class="kpi"><b>${pct(blue.reduce((s, r) => s + r.w, 0), blue.length)}%</b><span>blue side · ${blue.length}</span></div>
     <div class="kpi"><b>${pct(red.reduce((s, r) => s + r.w, 0), red.length)}%</b><span>red side · ${red.length}</span></div><div class="kpi"><b>${mmss(Math.round(avgLen))}</b><span>avg length</span></div></div></div></div>
-    <div class="grid2" style="margin-top:16px"><div class="stack"><div class="card"><h3>Roster</h3><div id="ro"></div></div><div class="card"><h3>Most picked</h3><div id="tp"></div></div>
+    <div class="grid2" style="margin-top:16px"><div class="stack">${seasonCard("#/team/" + id, d.rows)}<div class="card"><h3>Roster</h3><div id="ro"></div></div><div class="card"><h3>Most picked</h3><div id="tp"></div></div>
       <div class="card"><h3>Head-to-head</h3><div id="th2h"></div></div>
       <div class="card"><h3>Most banned (by them)</h3><div class="iteml">${[...bans].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c, n]) => `<a class="row" href="${link("champion/" + c)}">${champImg(c, 26)}<span>${esc(cname(c))}</span><span class="n">${n}</span><span class="faint">${pct(n, rows.length)}%</span></a>`).join("")}</div></div></div>
     <div class="card"><h3>Games <span class="sp faint">${rows.length}</span></h3><div class="gl" id="tg"></div></div></div>`);
@@ -889,7 +964,7 @@ async function teamPage(id) {
 }
 
 async function champPage(c, q) {
-  const [d, meta] = await Promise.all([J(`c/${c}.json`), J("meta.json")]);
+  const [d, meta] = await Promise.all([rowsOf("c", c), metaOf()]);
   const role = q.get("role") || "", pa = q.get("pa") || "";
   const scoped = d.rows.filter((r) => inScope(r.t));
   const rows = pa ? scoped.filter((r) => r.pa === pa) : scoped;
@@ -901,7 +976,7 @@ async function champPage(c, q) {
   remember({ h: "#/champion/" + c, n: cname(c), k: "Champion", img: champImg(c, 26) });
   const roles = [...groupBy(rows, "r")].map(([r, rs]) => ({ r, g: rs.length, w: rs.reduce((s, x) => s + x.w, 0) })).sort((x, y) => y.g - x.g);
   const patches = [...groupBy(scoped, "pa").keys()].filter(Boolean).sort((x, y) => cmpPatch(y, x));
-  const qs = (o) => "#/champion/" + c + "?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, ...o }).filter(([, v]) => v)));
+  const qs = (o) => "#/champion/" + c + "?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, y: S.season, ...o }).filter(([, v]) => v)));
   const players = [...groupBy(rr, "p")].map(([p, rs]) => ({ p, n: rs[0].pn, tn: rs[0].tn, ...agg(rs) }));
   const withB = rr.filter((r) => r.core);
   page(`<div class="card chead"><div class="bgimg" style="background-image:url('${DD}img/champion/splash/${c}_0.jpg')"></div><div class="prof">${champImg(c, 84)}
@@ -912,7 +987,7 @@ async function champPage(c, q) {
       <div class="kpi"><b class="${wrCls(a.wr)}">${rr.length ? a.wr + "%" : "–"}</b><span>win rate</span></div><div class="kpi"><b class="${kdaCls(a.kda)}">${f2(a.kda)}</b><span>KDA</span></div></div></div>
       <div class="tabs">${favBtn({ h: "#/champion/" + c, n: cname(c), k: "Champion", img: champImg(c, 26) })}</div></div>
     <div class="grid2b" style="margin-top:16px">
-      <div class="card"><h3>Build <span class="sp faint">${withB.length ? `from ${withB.length} of ${rr.length} games with build data` : ""}</span></h3>${withB.length ? buildBlock(withB) : `<div class="empty">Item order, skill order and full runes are still being collected for these games.<br><span class="faint">Final items and keystones are below.</span></div>`}</div>
+      <div class="card"><h3>Build <span class="sp faint">${withB.length ? `from ${withB.length} of ${rr.length} games with build data` : ""}</span></h3>${withB.length ? buildBlock(withB) : rr.some((r) => r.it?.length) ? `<div class="empty">Item order, skill order and full runes are still being collected for these games.<br><span class="faint">Final items and keystones are below.</span></div>` : `<div class="empty">No builds for these games.<br><span class="faint">Earlier seasons (Oracle's Elixir) have picks, bans and stats but no items or runes.</span></div>`}</div>
       <div class="stack"><div class="card"><h3>Runes</h3>${runeBlock(rr, withB)}</div>
         <div class="card"><h3>Summoner spells</h3>${listBlock(rr, (r) => (r.sp || []).slice().sort().join(","), (k) => k.split(",").filter(Boolean).map((x) => spellImg(x, 26)).join(""), 3)}</div></div></div>
     <div class="grid2b" style="margin-top:16px">
@@ -920,7 +995,7 @@ async function champPage(c, q) {
       <div class="card"><h3>Synergy <span class="sp faint">with teammates</span></h3><div id="cs"></div></div></div>
     <div class="grid2" style="margin-top:16px"><div class="stack">
       <div class="card"><h3>Roles</h3><div class="bars">${roles.map((x) => `<div class="row"><span class="role">${RL[x.r]}</span><div class="track"><i style="width:${(100 * x.g) / (rows.length || 1)}%"></i></div><span>${x.g} games</span><span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span></div>`).join("") || `<div class="faint">Not picked.</div>`}</div></div>
-      <div class="card"><h3>Final items <span class="sp faint">% of games · win</span></h3>${listBlock(rr, (r) => r.it.filter((i) => BIG.has(i)), (i) => `${itemImg(+i, 28)}<span>${esc(S.idx.dd.items[i] || i)}</span>`, 10, true)}</div>
+      <div class="card"><h3>Final items <span class="sp faint">% of games · win</span></h3>${listBlock(rr, (r) => (r.it || []).filter((i) => BIG.has(i)), (i) => `${itemImg(+i, 28)}<span>${esc(S.idx.dd.items[i] || i)}</span>`, 10, true)}</div>
       <div class="card"><h3>Pro players</h3><div id="cp"></div></div></div>
     <div class="card"><h3>Pro games <span class="sp faint">${rr.length}</span></h3><div class="mhs" id="mh"></div></div></div>`);
   $("#cpa").onchange = (e) => { location.hash = qs({ pa: e.target.value }); };
@@ -971,15 +1046,15 @@ function runeBlock(rr, withB) {
 let BIG = new Set();
 
 async function gamePage(t, gid) {
-  const shard = await J(`g/${t}.json`), g = shard[gid];
+  const shard = await shardOf(t), g = shard[gid];
   if (!g) return notFound("game");
   const [a, b] = g.teams;
-  const series = Object.values(shard).filter((x) => x.date === g.date && new Set(x.teams.map((y) => y.id)).has(a.id) && new Set(x.teams.map((y) => y.id)).has(b.id)).sort((x, y) => x.id - y.id);
+  const series = Object.values(shard).filter((x) => x.date === g.date && new Set(x.teams.map((y) => y.id)).has(a.id) && new Set(x.teams.map((y) => y.id)).has(b.id)).sort((x, y) => (x.gn ?? 0) - (y.gn ?? 0) || String(x.id).localeCompare(String(y.id), undefined, { numeric: true }));
   page(`<div class="card"><div class="prof" style="justify-content:center;text-align:center;gap:30px">
       <div>${tLogo(a.id, 56)}<h1 class="${a.win ? "" : "faint"}">${tLink(a.id, a.name)}</h1><div class="muted">${a.win ? "Victory" : "Defeat"} · blue</div></div>
       <div><div style="font-size:34px;font-weight:800">${a.k} – ${b.k}</div><div class="muted">${mmss(g.len)} · patch ${esc(g.patch)}</div></div>
       <div>${tLogo(b.id, 56)}<h1 class="${b.win ? "" : "faint"}">${tLink(b.id, b.name)}</h1><div class="muted">${b.win ? "Victory" : "Defeat"} · red</div></div></div>
-      <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a><span class="pill">${esc(g.stage || "")}</span><span class="pill">${esc(g.date)}</span>${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
+      <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a>${g.stage ? `<span class="pill">${esc(g.stage)}</span>` : ""}<span class="pill">${esc(g.date)}</span>${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
       ${series.length > 1 ? series.map((x, i) => `<a class="chip ${x.id == gid ? "on" : ""}" href="${gLink(t, x.id)}">Game ${i + 1}</a>`).join("") : ""}</div></div>
     ${g.x ? `<div class="seg" id="gtabs" style="margin-top:16px"><button data-t="ov" class="on">Overview</button><button data-t="tl">Gold & timeline</button><button data-t="bd">Builds</button></div>` : ""}
     <div id="gov"><div class="card" style="margin-top:16px;overflow:hidden">${scoreboard(g)}</div>
@@ -1034,7 +1109,7 @@ function playerBuild(p, b) {
 const skillMax = (sk) => { const c = { Q: 0, W: 0, E: 0 }; for (const k of sk.slice(0, 18)) if (k in c) c[k]++; return Object.keys(c).sort((x, y) => c[y] - c[x] || sk.indexOf(x) - sk.indexOf(y)).map(skillKey).join(arrow); };
 
 async function tourPage(slug) {
-  const shard = await J(`g/${slug}.json`), tr = S.tours[slug];
+  const shard = await shardOf(slug), tr = S.tours[slug];
   const gs = Object.values(shard).sort((a, b) => (b.date + b.id > a.date + a.id ? 1 : -1));
   const st = new Map(); for (const g of gs) for (const t of g.teams) { const x = st.get(t.id) || { id: t.id, n: t.name, g: 0, w: 0, k: 0, len: 0 }; x.g++; x.w += t.win; x.k += t.k; x.len += g.len; st.set(t.id, x); }
   const ch = new Map(); for (const g of gs) { for (const p of g.players) { const x = ch.get(p.ci) || { c: p.ci, p: 0, w: 0, b: 0 }; x.p++; x.w += g.teams[p.side].win ? 1 : 0; ch.set(p.ci, x); } for (const t of g.teams) for (const c of t.bi) { const x = ch.get(c) || { c, p: 0, w: 0, b: 0 }; x.b++; ch.set(c, x); } }
@@ -1101,7 +1176,13 @@ function wireSearch(q, box) {
 async function route() {
   const [path, qs] = location.hash.slice(2).split("?");
   const q = new URLSearchParams(qs || ""), parts = (path || "").split("/");
-  S.scope = q.get("s") || ""; $("#scope").value = S.scope;
+  const season = /^(all|\d{4})$/.test(q.get("y") || "") && q.get("y") != CUR ? q.get("y") : "";
+  if (season || ((parts[0] === "game" || parts[0] === "t") && isOldT(parts[1] || ""))) {
+    if (!LIFE) app().innerHTML = `<div class="loading">Loading every season since ${S.idx.seasons.at(-1).y}…</div>`;
+    try { await loadLife(); } catch (e) { console.error(e); page(`<div class="nf"><h1>Couldn't load earlier seasons</h1><p class="muted">Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Back to ${CUR}</a></p></div>`); return; }
+  }
+  if (season !== S.season) { S.season = season; buildScope(); }
+  S.scope = q.get("s") || ""; $("#scope").value = S.scope; $("#season").value = S.season;
   document.querySelectorAll("nav.main a").forEach((a) => a.classList.toggle("on", a.dataset.r === parts[0]));
   document.body.classList.toggle("home", !parts[0]);
   window.scrollTo(0, 0);
@@ -1133,7 +1214,7 @@ async function route() {
 }
 // friendly 404: old links, typos, players who changed IDs
 function notFound(kind) {
-  page(`<div class="nf"><h1>We couldn't find that ${kind}</h1><p class="muted">The link may be out of date${{ player: ", or this player has no 2026 pro games yet", champion: ", or this champion hasn't been played in 2026 pro games yet", team: ", or this team has no 2026 pro games yet", game: ", or the game hasn't been added yet" }[kind] || ""}. Try searching instead:</p>
+  page(`<div class="nf"><h1>We couldn't find that ${kind}</h1><p class="muted">The link may be out of date${{ player: ", or this player has no pro games on record", champion: ", or this champion hasn't been played in pro games yet", team: ", or this team has no pro games on record", game: ", or the game hasn't been added yet" }[kind] || ""}. Try searching instead:</p>
     <div class="search nfs"><input id="nfq" placeholder="Search players, teams, champions" autocomplete="off" aria-label="Search"><div class="sugg" id="nfsugg" hidden></div></div>
     <p style="margin-top:18px"><a class="star" href="#/">Home</a> <a class="star" href="#/champions">Tier list</a> <a class="star" href="#/players">Players</a></p></div>`);
   wireSearch($("#nfq"), $("#nfsugg")); $("#nfq").focus();

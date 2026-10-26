@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-26 (launch prep)
+Last updated: 2026-10-26 (lifetime data)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -39,9 +39,17 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Before sharing: pick the name/domain (prop.gg is taken, reads like betting); ask gol.gg (X: @bynjee / Patreon) for
   their OK; wait ~2 days for build/timeline extras on major leagues.
 - Accuracy: per-champion picks/bans matched gol.gg exactly for LCK Rounds 1-2, MSI, LPL Split 2.
-- TODO (user asked to remember): LIFETIME data (all gol.gg seasons) as an option, not the default. Needs a season
-  dimension + data diet (6.9k games ≈ 120 MB dist already).
+- DONE 2026-10-26: lifetime data. pipeline/oracle.py turns Oracle's Elixir CSVs (~/dev/oracle-data, not committed)
+  into data/oe/<year>.json.gz + bridge.json (Oracle 2026 ids → names, to link to gol.gg pids). build.py lifetime()
+  writes dist/data/h/{index,meta}.json.gz + h/{p,t,c}/<id>.json.gz + g/<old tournament>.json.gz (gzipped; app uses
+  DecompressionStream). Old-only ids are 'o'+oracle hex. App: S.season ('' = 2026, 'all', year) via ?y=, header +
+  landing + tier-list season selects, loadLife() merges the old index on demand, rowsOf()/shardOf()/metaOf() loaders,
+  Seasons card (op.gg past seasons) on player/team pages from index `yrs`. dist ≈ 301 MB.
+- Missing: 2016-2019 (Drive said "quota exceeded"; file ids in oracle.py notes below). SK Telecom T1 (2014-15) is a
+  separate team from T1 (Oracle uses a different team id).
+- Drive ids: 2016 1muyfpaIqk8_0BFkgLCWXDGNgWSXoPBwG, 2017 11fx3nNjSYB0X8vKxLAbYOrS2Bu6avm9A,
+  2018 1GsNetJQOMx0QJ6_FN8M1kwGvU_GPPcPZ, 2019 11eKtScnZcpfZcD3w3UrD7nnpfLHvj9_t
+  (https://drive.usercontent.google.com/download?id=<id>&export=download&confirm=t)
 
 ## 2026-10-26 update
 - Renamed to pros.gg (display text, og.png, favicon). Domain not bought; URL unchanged.
-- Lifetime data plan: use saved Oracle's Elixir CSVs (~/dev/worlds-data 2020-26, ~/dev/lol-pro-predictor/data 2014-15; 2016-19 need download).

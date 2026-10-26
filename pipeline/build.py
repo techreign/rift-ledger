@@ -8,8 +8,10 @@ Outputs (all fetched lazily by the app):
   data/g/<tournament>.json  full game details (scoreboard + all stats), keyed by game id
   data/x/<game>.json      per-game extras (gold per minute, event log, build/skill order, full runes) when scraped
   data/meta.json          champion picks/wins by tournament x patch x role (+ bans) for the tier list
+  data/h/...              earlier seasons from Oracle's Elixir (data/oe, made by oracle.py): index.json, meta.json, p/ t/ c/
+                          (their g/ shards sit with the rest); only fetched when a viewer picks a past season
 """
-import json, re, shutil, sys, time, unicodedata, urllib.request
+import gzip, json, re, shutil, sys, time, unicodedata, urllib.request
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -98,14 +100,156 @@ def loose(name):
     """'Hanwha Life Esports' / 'Xi'an Team WE' -> core name, for matching when sponsor words differ"""
     return norm(re.sub(r"\b(e-?sports?|gaming|team|club|the)\b", " ", (name or "").lower()))
 
-def recent_games(games, tours, n=400, per=20):
+def recent_games(games, tours, n=400, per=20, per_t=14):
     """newest n overall plus the newest `per` of every league/tournament, so a home-page filter is never empty"""
     lg = {t["s"]: t["lg"] for t in tours}
     keep, seen_t, seen_l = [], defaultdict(int), defaultdict(int)
     for i, g in enumerate(games):  # games are newest first
-        if i < n or seen_t[g["t"]] < 14 or seen_l[lg[g["t"]]] < per: keep.append(g)
+        if i < n or seen_t[g["t"]] < per_t or seen_l[lg[g["t"]]] < per: keep.append(g)
         seen_t[g["t"]] += 1; seen_l[lg[g["t"]]] += 1
     return keep
+
+def gz(path, obj):
+    """past seasons are big and repetitive: stored gzipped (Pages has a 1 GB cap), the app inflates them with DecompressionStream"""
+    with gzip.open(path, "wt", encoding="utf-8", compresslevel=6) as f: json.dump(obj, f, separators=(",", ":"))
+
+def player_by(rows):
+    """tournament -> games, wins, kills, deaths, assists, cs, seconds, dmg, gd15 sum, gd15 n, kp sum, kp n, vision, gold"""
+    by = defaultdict(lambda: [0] * 14)
+    for r in rows:
+        b = by[r["t"]]; b[0] += 1; b[1] += r["w"]; b[2] += r.get("k") or 0; b[3] += r.get("d") or 0; b[4] += r.get("a") or 0; b[5] += r.get("cs") or 0; b[6] += r["len"]
+        b[7] += r.get("dmg") or 0; b[10] += r.get("kp") or 0; b[12] += r.get("vs") or 0; b[13] += r.get("gold") or 0
+        if r.get("gd15") is not None: b[8] += r["gd15"]; b[9] += 1
+        if r.get("kp") is not None: b[11] += 1
+    for b in by.values(): b[10] = round(b[10], 1); b[12] = round(b[12], 1)
+    return dict(by)
+
+def write_meta(path, games, tours):
+    """tier list: champion x tournament x patch x role picks/wins, bans, and game counts"""
+    pidx = {pa: i for i, pa in enumerate(sorted({g["patch"] or "" for g in games}))}
+    tidx = {t["s"]: i for i, t in enumerate(tours)}
+    mp, mb, ng = defaultdict(lambda: [0, 0]), defaultdict(int), defaultdict(int)
+    for g in games:
+        ti, pi = tidx[g["t"]], pidx[g["patch"] or ""]
+        ng[(ti, pi)] += 1
+        for p in g["players"]:
+            v = mp[(p["ci"], ti, pi, ROLES.index(p["role"]) if p["role"] in ROLES else 0)]; v[0] += 1; v[1] += int(g["teams"][p["side"]]["win"])
+        for t in g["teams"]:
+            for b in t["bi"]: mb[(b, ti, pi)] += 1
+    meta = dict(tours=[t["s"] for t in tours], patches=list(pidx), roles=ROLES,
+        p=[[*k, *v] for k, v in mp.items()], b=[[*k, v] for k, v in mb.items()], g=[[*k, v] for k, v in ng.items()])
+    if path.suffix == ".gz": gz(path, meta)
+    else: path.write_text(json.dumps(meta, separators=(",", ":")), encoding="utf-8")
+
+def lifetime(cid, cname, team_of, anyp, gol_players, gol_teams):
+    """Earlier seasons from Oracle's Elixir -> dist/data/h/* and g/<tournament>.json. Oracle ids are linked to 2026
+    gol.gg ids through data/oe/bridge.json (Oracle's own 2026 rows), so a current pro's page carries their whole
+    career; everyone else gets an 'o'-prefixed id. Returns ({2026 player id: {year: [games, wins]}}, seasons)."""
+    src = ROOT / "data" / "oe"
+    files = sorted(src.glob("*.json.gz")) if src.exists() else []
+    if not files: return {}, []
+    tours, games = [], []
+    for f in files:
+        with gzip.open(f, "rt", encoding="utf-8") as fh: doc = json.load(fh)
+        tours += doc["tours"]; games += doc["games"]
+    games.sort(key=lambda g: (g["date"], g["id"]), reverse=True)
+    br = json.loads((src / "bridge.json").read_text(encoding="utf-8")) if (src / "bridge.json").exists() else dict(players=[], teams=[])
+    by_nt, by_nr = {}, defaultdict(list)
+    for p in gol_players:
+        by_nt[(norm(p["n"]), loose(p["tn"]))] = p["id"]; by_nr[(norm(p["n"]), p["r"])].append(p["id"])
+    pmap = {}
+    for o, n, tn, r in br["players"]:
+        hit = by_nt.get((norm(n), loose(tn))) or (by_nr[(norm(n), r)][0] if len(by_nr[(norm(n), r)]) == 1 else None)
+        if hit: pmap.setdefault(o, hit)
+    # players missing from Oracle's 2026 file: same name + role as exactly one 2026 pro, and still playing in 2025
+    last = {}
+    for g in games:
+        for p in g["players"]:
+            if p["oid"] not in last: last[p["oid"]] = (g["date"], p["n"], p["role"])
+    taken = set(pmap.values())
+    for o, (dt, n, r) in last.items():
+        c = by_nr.get((norm(n), r), [])
+        if o not in pmap and dt >= "2025-01-01" and len(c) == 1 and c[0] not in taken: pmap[o] = c[0]; taken.add(c[0])
+    tnames = {}
+    for t in gol_teams:
+        for k in (norm(t["n"]), loose(t["n"])):
+            if k: tnames.setdefault(k, t["id"])
+    tmap = {o: tnames.get(norm(n)) or tnames.get(loose(n)) for o, n in br["teams"]}
+    pid = lambda o: pmap.get(o) or "o" + o
+    tid = lambda o: tmap.get(o) or "o" + o
+
+    for d in ("p", "t", "c"): (OUT / "h" / d).mkdir(parents=True, exist_ok=True)
+    hist, team_games, champ_rows, shards = defaultdict(list), defaultdict(list), defaultdict(list), defaultdict(dict)
+    champ_t = defaultdict(lambda: defaultdict(lambda: [0, 0, 0]))
+    pinfo, tinfo = {}, {}
+    clean = lambda d: {k: v for k, v in d.items() if v is not None}
+    for g in games:
+        t = g["t"]
+        for tm in g["teams"]:
+            tm["id"] = tid(tm.pop("oid")); tm["bi"] = [cid(b) for b in tm.pop("bans")]; tm["obj"] = []
+            for b in tm["bi"]: champ_t[b][t][2] += 1
+            if tm["id"] not in tinfo:
+                tinfo[tm["id"]] = dict(id=tm["id"], n=tm["name"], **({"lo": e["logo"]} if (e := team_of(tm["name"])) else {}))
+        for p in g["players"]:
+            p["pid"] = pid(p.pop("oid")); p.pop("tm"); p["ci"] = cid(p.pop("c")); p["it"] = []
+        shards[t][g["id"]] = g
+        for side, tm in enumerate(g["teams"]):
+            opp = g["teams"][1 - side]; mine = [p for p in g["players"] if p["side"] == side]
+            team_games[tm["id"]].append(dict(g=g["id"], t=t, dt=g["date"], s=side, w=int(tm["win"]), op=opp["id"], on=opp["name"], len=g["len"],
+                k=tm["k"], ok=opp["k"], pk=[p["ci"] for p in mine], opk=[p["ci"] for p in g["players"] if p["side"] != side], bn=tm["bi"],
+                ro=[[p["pid"], p["n"], p["role"]] for p in mine]))
+        for p in g["players"]:
+            st, tm, opp = p["st"], g["teams"][p["side"]], g["teams"][1 - p["side"]]
+            lane = next((q for q in g["players"] if q["side"] != p["side"] and q["role"] == p["role"]), None)
+            mates = [q for q in g["players"] if q["side"] == p["side"] and q is not p]
+            row = clean(dict(g=g["id"], t=t, dt=g["date"], pa=g["patch"], c=p["ci"], r=p["role"], s=p["side"], w=int(tm["win"]),
+                k=p["k"], d=p["d"], a=p["a"], cs=p["cs"], len=g["len"], gold=st.get("gold"), dmg=st.get("dmg"), kp=st.get("kp"), vs=st.get("vs"),
+                gd15=st.get("gd15"), csd15=st.get("csd15"), tm=tm["id"], tn=tm["name"], op=opp["id"], on=opp["name"],
+                oc=lane["ci"] if lane else None, opp=lane["pid"] if lane else None))
+            hist[p["pid"]].append(dict(row, mt=[q["pid"] for q in mates]))
+            champ_rows[p["ci"]].append(dict(row, p=p["pid"], pn=p["n"], al=[q["ci"] for q in mates]))
+            champ_t[p["ci"]][t][0] += 1; champ_t[p["ci"]][t][1] += int(tm["win"])
+            if p["pid"] not in pinfo:  # games are newest first: latest name and team
+                k = norm(p["n"]); ph = ((team_of(tm["name"]) or {}).get("roster") or {}).get(k) or anyp.get((k, p["role"]))
+                pinfo[p["pid"]] = dict(id=p["pid"], n=p["n"], tm=tm["id"], tn=tm["name"], **({"ph": ph} if ph else {}))
+    year = {t["s"]: t["y"] for t in tours}
+    league = {t["s"]: t["lg"] for t in tours}
+    players, yrs = [], {}
+    for p, rows in hist.items():
+        info = pinfo[p]
+        players.append(dict(info, r=Counter(r["r"] for r in rows).most_common(1)[0][0], lg=Counter(league[r["t"]] for r in rows).most_common(1)[0][0],
+            g=len(rows), by=player_by(rows), top=[c for c, _ in Counter(r["c"] for r in rows).most_common(3)]))
+        gz(OUT / "h" / "p" / f"{p}.json.gz", dict(info, rows=rows))
+        if not str(p).startswith("o"):
+            y = defaultdict(lambda: [0, 0])
+            for r in rows: y[year[r["t"]]][0] += 1; y[year[r["t"]]][1] += r["w"]
+            yrs[p] = dict(y)
+    teams = []
+    for t, rows in team_games.items():
+        info = tinfo[t]; by = defaultdict(lambda: [0, 0])
+        for r in rows: by[r["t"]][0] += 1; by[r["t"]][1] += r["w"]
+        teams.append(dict(info, lg=Counter(league[r["t"]] for r in rows).most_common(1)[0][0], g=len(rows), by=dict(by)))
+        gz(OUT / "h" / "t" / f"{t}.json.gz", dict(info, rows=rows))
+    for c, rows in champ_rows.items():
+        gz(OUT / "h" / "c" / f"{c}.json.gz", dict(c=c, rows=rows))
+    for t, gs in shards.items():
+        gz(OUT / "g" / f"{t}.json.gz", gs)
+    write_meta(OUT / "h" / "meta.json.gz", games, tours)
+    for t in tours:
+        ds = [g["date"] for g in shards[t["s"]].values()]
+        t.update(g=len(ds), a=min(ds), b=max(ds))
+    recent = []
+    for y in sorted({t["y"] for t in tours}, reverse=True):
+        recent += recent_games([g for g in games if year[g["t"]] == y], [t for t in tours if t["y"] == y], n=60, per=6, per_t=3)
+    recent = [dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], pa=g["patch"],
+        tm=[[t["id"], t["name"], int(t["win"]), t["k"], [p["ci"] for p in g["players"] if p["side"] == i]] for i, t in enumerate(g["teams"])]) for g in recent]
+    seasons = [dict(y=y, n=sum(t["g"] for t in tours if t["y"] == y)) for y in sorted({t["y"] for t in tours}, reverse=True)]
+    gz(OUT / "h" / "index.json.gz", dict(n=len(games), tours=sorted(tours, key=lambda t: t["b"], reverse=True),
+        players=sorted(players, key=lambda p: -p["g"]), teams=sorted(teams, key=lambda t: -t["g"]),
+        champs=[dict(c=c, n=cname.get(c, c), by=dict(per)) for c, per in champ_t.items()], recent=recent))
+    linked = sum(1 for p in pinfo if not str(p).startswith("o"))
+    print(f"lifetime: {len(games)} games {seasons[-1]['y']}-{seasons[0]['y']}, {len(players)} players ({linked} linked to 2026 pros), {len(teams)} teams")
+    return yrs, seasons
 
 def max_order(sk):
     """'QEWQQRQ...' -> 'QEW' (most points first, ties by who got there first)"""
@@ -209,16 +353,8 @@ def main():
     for pid, rows in hist.items():
         roles = Counter(r["r"] for r in rows); champs = Counter(r["c"] for r in rows)
         info = pinfo[pid]
-        # tournament -> games, wins, kills, deaths, assists, cs, seconds, dmg, gd15 sum, gd15 n, kp sum, kp n, vision, gold
-        by = defaultdict(lambda: [0] * 14)
-        for r in rows:
-            b = by[r["t"]]; b[0] += 1; b[1] += r["w"]; b[2] += r["k"] or 0; b[3] += r["d"] or 0; b[4] += r["a"] or 0; b[5] += r["cs"] or 0; b[6] += r["len"]
-            b[7] += r["dmg"] or 0; b[10] += r["kp"] or 0; b[12] += r["vs"] or 0; b[13] += r["gold"] or 0
-            if r["gd15"] is not None: b[8] += r["gd15"]; b[9] += 1
-            if r["kp"] is not None: b[11] += 1
-        for b in by.values(): b[10] = round(b[10], 1); b[12] = round(b[12], 1)
         players.append(dict(info, r=roles.most_common(1)[0][0], lg=Counter(region_of[r["t"]] for r in rows).most_common(1)[0][0],
-            g=len(rows), by=dict(by), top=[c for c, _ in champs.most_common(3)]))
+            g=len(rows), by=player_by(rows), top=[c for c, _ in champs.most_common(3)]))
         (OUT / "p" / f"{pid}.json").write_text(json.dumps(dict(info, rows=rows), separators=(",", ":")), encoding="utf-8")
     teams = []
     for tid, rows in team_games.items():
@@ -231,26 +367,18 @@ def main():
     for c, per in champ_t.items():
         champions.append(dict(c=c, n=next((v[1] for v in dd["champs"].values() if v[0] == c), c), by={t: v for t, v in per.items()}))
         (OUT / "c" / f"{c}.json").write_text(json.dumps(dict(c=c, rows=champ_rows.get(c, [])), separators=(",", ":")), encoding="utf-8")
-    # tier list: champion x tournament x patch x role picks/wins, bans, and game counts
-    pidx = {pa: i for i, pa in enumerate(sorted({g["patch"] or "" for g in games}))}
-    tidx = {t["s"]: i for i, t in enumerate(tours)}
-    mp, mb, ng = defaultdict(lambda: [0, 0]), defaultdict(int), defaultdict(int)
-    for g in games:
-        ti, pi = tidx[g["t"]], pidx[g["patch"] or ""]
-        ng[(ti, pi)] += 1
-        for p in g["players"]:
-            v = mp[(p["ci"], ti, pi, ROLES.index(p["role"]) if p["role"] in ROLES else 0)]; v[0] += 1; v[1] += int(g["teams"][p["side"]]["win"])
-        for t in g["teams"]:
-            for b in t["bi"]: mb[(b, ti, pi)] += 1
-    (OUT / "meta.json").write_text(json.dumps(dict(tours=[t["s"] for t in tours], patches=list(pidx), roles=ROLES,
-        p=[[*k, *v] for k, v in mp.items()], b=[[*k, v] for k, v in mb.items()], g=[[*k, v] for k, v in ng.items()]), separators=(",", ":")), encoding="utf-8")
+    write_meta(OUT / "meta.json", games, tours)
     for t, gs in shards.items():
         (OUT / "g" / f"{t}.json").write_text(json.dumps(gs, separators=(",", ":")), encoding="utf-8")
 
     recent = [dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], pa=g["patch"], st=g["stage"],
         tm=[[t["id"], t["name"], int(t["win"]), t["k"], [p["ci"] for p in g["players"] if p["side"] == i]] for i, t in enumerate(g["teams"])])
         for g in recent_games(games, tours)]
-    index = dict(built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
+    for t in tours: t["y"] = 2026
+    yrs, seasons = lifetime(cid, {v[0]: v[1] for v in dd["champs"].values()}, team_of, anyp, players, teams)
+    for p in players:
+        if p["id"] in yrs: p["yrs"] = yrs[p["id"]]
+    index = dict(built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
         tours=sorted(tours, key=lambda t: t["b"] or "", reverse=True), players=sorted(players, key=lambda p: -p["g"]),
         teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))
@@ -259,7 +387,7 @@ def main():
     if (ROOT / "static").exists(): shutil.copytree(ROOT / "static", DIST, dirs_exist_ok=True)
     unmatched = sorted(k for k, v in champ_id.items() if v not in {x[0] for x in dd["champs"].values()})
     if unmatched: print("champions not in Data Dragon:", unmatched, file=sys.stderr)
-    size = sum(f.stat().st_size for f in OUT.rglob("*.json")) / 1e6
+    size = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file()) / 1e6
     print(f"{nx} games with extras; {sum('ph' in p for p in players)} player photos, {sum('lo' in t for t in teams)} team logos")
     print(f"{len(players)} players, {len(teams)} teams, {len(champions)} champions, {size:.1f} MB of data")
 
