@@ -87,19 +87,19 @@ body.home header .search { visibility: hidden; }
 .biglogo i { width: 46px; height: 46px; border: 4px solid var(--gold); transform: rotate(45deg); border-radius: 6px; position: relative; flex: none; }
 .biglogo i::after { content: ""; position: absolute; inset: 8px; background: var(--gold); border-radius: 2px; }
 .landing .tag { color: #c9ced8; margin: 10px 0 34px; font-size: 15px; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
-.bigsearch { position: relative; flex: none; margin: 0 auto; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #31313c; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05); text-align: left; padding: 0 30px 0 36px; }
-.bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #5383e8; }
+.bigsearch { position: relative; flex: none; margin: 0 auto; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #4767ad; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); text-align: left; padding: 0 30px 0 36px; }
+.bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #9db8f0; }
 .bigsearch .lg { display: flex; flex-direction: column; justify-content: center; padding-right: 16px; width: 210px; flex: none; position: relative; }
-.bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #9e9eb1; pointer-events: none; }
+.bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #d6e0f5; pointer-events: none; }
 .bigsearch label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-.bigsearch .lg select { appearance: none; border: 0; background: transparent; color: #9e9eb1; font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
-.bigsearch .lg select option, .bigsearch .lg select optgroup { color: #e8eaee; background: #31313c; }
-.bigsearch .div { width: 1px; height: 28px; background: #515163; flex: none; }
+.bigsearch .lg select { appearance: none; border: 0; background: transparent; color: #d6e0f5; font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
+.bigsearch .lg select option, .bigsearch .lg select optgroup { color: #e8eaee; background: #2c3a5c; }
+.bigsearch .div { width: 1px; height: 28px; background: rgba(255,255,255,.28); flex: none; }
 .bigsearch .q { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; min-width: 0; }
 .bigsearch .q input { border: 0; outline: none; background: transparent; color: #fff; font-size: 15px; padding: 0; width: 100%; }
-.bigsearch .q input::placeholder { color: #9e9eb1; }
-.bigsearch button { border: 0; background: none; color: #5383e8; font-weight: 800; font-size: 30px; letter-spacing: -.02em; cursor: pointer; padding: 0; font-style: italic; }
-.bigsearch button:hover { color: #7aa0f0; }
+.bigsearch .q input::placeholder { color: #bccbeb; }
+.bigsearch button { border: 0; background: none; color: #fff; font-weight: 800; font-size: 30px; letter-spacing: -.02em; cursor: pointer; padding: 0; font-style: italic; }
+.bigsearch button:hover { color: #d6e0f5; }
 .bigsearch .sugg { top: 80px; color: var(--text); z-index: 5; }
 .bigsearch select, .bigsearch input { height: 22px; line-height: 22px; display: block; }
 .landing .chips { justify-content: center; margin-top: 24px; max-width: 900px; }
@@ -570,11 +570,20 @@ async function champsPage(q) {
   rows.forEach((x, i) => { const f = i / rows.length; x.rank = i + 1; x.tier = f < cut[0] ? 0 : f < cut[1] ? 1 : f < cut[2] ? 2 : f < cut[3] ? 3 : 4; });
   const patches = meta.patches.filter((x, pi) => x && meta.g.some(([ti, p2]) => p2 === pi && okT(ti))).sort((x, y) => cmpPatch(y, x));
   const qs = (o) => "#/champions?" + new URLSearchParams(Object.fromEntries(Object.entries({ role, pa, s: S.scope, ...o }).filter(([, v]) => v)));
+  // season / league / tournament filters drive the same scope as the header select
+  const curLg = S.scope.startsWith("lg:") ? S.scope.slice(3) : S.scope.startsWith("t:") ? S.tours[S.scope.slice(2)]?.lg || "" : "";
+  const lgs = [...new Set(S.idx.tours.map((t) => t.lg))].sort(), tours = S.idx.tours.filter((t) => !curLg || t.lg === curLg);
+  const opt = (v, n, on) => `<option value="${esc(v)}" ${on ? "selected" : ""}>${esc(n)}</option>`;
   page(`<div class="sec-h" style="border:0;padding:0 0 12px"><h1 style="text-transform:none;letter-spacing:0;color:var(--text)">Champion tier list</h1><span class="sp muted">${esc(scopeName())}${pa ? " · patch " + esc(pa) : ""} · ${ng.toLocaleString()} games</span></div>
-    <div class="chips" style="margin-bottom:12px;align-items:center">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${r ? RL[r] : "All roles"}</a>`).join("")}
-      <select class="fsel" id="tpa" style="margin-left:auto"><option value="">All patches</option>${patches.map((x) => `<option ${x === pa ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+    <div class="chips" style="margin-bottom:10px;align-items:center">
+      <select class="fsel" aria-label="Season"><option>Season 2026</option></select>
+      <select class="fsel" id="tlg" aria-label="League">${opt("", "All leagues", !curLg)}${lgs.map((l) => opt("lg:" + l, l, l === curLg)).join("")}</select>
+      <select class="fsel" id="ttr" aria-label="Tournament" style="max-width:260px">${opt(curLg ? "lg:" + curLg : "", "All tournaments", !S.scope.startsWith("t:"))}${tours.map((t) => opt("t:" + t.s, t.n, S.scope === "t:" + t.s)).join("")}</select>
+      <select class="fsel" id="tpa" aria-label="Patch"><option value="">All patches</option>${patches.map((x) => `<option ${x === pa ? "selected" : ""}>${x}</option>`).join("")}</select></div>
+    <div class="chips" style="margin-bottom:12px;align-items:center">${["", ...ROLES].map((r) => `<a class="chip ${role === r ? "on" : ""}" href="${qs({ role: r })}">${r ? RL[r] : "All roles"}</a>`).join("")}</div>
     <div class="card" id="ct"></div><p class="faint" style="font-size:12px">Tier = presence (picks + bans) with a small, sample-size-damped win-rate adjustment; S is the top 6%, then A 14%, B 25%, C 30%, D the rest.</p>`);
   $("#tpa").onchange = (e) => { location.hash = qs({ pa: e.target.value }); };
+  $("#tlg").onchange = $("#ttr").onchange = (e) => { location.hash = qs({ s: e.target.value, pa: "" }); };
   table($("#ct"), [
     { k: "rank", h: "#", v: (x) => -x.rank, f: (x) => `<span class="faint">${x.rank}</span>` },
     { k: "tier", h: "Tier", v: (x) => -x.tier, f: (x) => `<span class="tier t${x.tier}">${"SABCD"[x.tier]}</span>` },
