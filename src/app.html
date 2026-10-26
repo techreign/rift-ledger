@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rift Ledger</title>
+<title>pros.gg</title>
 <meta name="description" content="Every 2026 pro League of Legends game: player match histories, champion pools, builds, team records and tournament stats.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0e1015">
 <!-- link previews (Discord, X, iMessage...). Hash routes can't have per-page tags, so every link shares these. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Rift Ledger">
-<meta property="og:title" content="Rift Ledger · every pro League of Legends game of 2026">
+<meta property="og:site_name" content="pros.gg">
+<meta property="og:title" content="pros.gg · every pro League of Legends game of 2026">
 <meta property="og:description" content="op.gg for pro play: match histories, champion builds, tier list, leaderboards and head-to-heads for every 2026 pro game.">
 <meta property="og:url" content="https://techreign.github.io/rift-ledger/">
 <meta property="og:image" content="https://techreign.github.io/rift-ledger/og.png">
@@ -330,7 +330,7 @@ footer p { margin: 4px 0; }
 </head>
 <body>
 <header><div class="wrap bar">
-  <a class="logo" href="#/"><i></i><span>RIFT LEDGER</span></a>
+  <a class="logo" href="#/"><i></i><span>PROS.GG</span></a>
   <nav class="main">
     <a href="#/champions" data-r="champions">Tier list</a><a href="#/players" data-r="players">Players</a><a href="#/leaderboard" data-r="leaderboard">Leaderboards</a>
     <a href="#/teams" data-r="teams">Teams</a><a href="#/tournaments" data-r="tournaments">Tournaments</a><a href="#/compare" data-r="compare">Multi-search</a>
@@ -344,8 +344,8 @@ footer p { margin: 4px 0; }
 </div></header>
 <main><div class="wrap" id="app"><div class="loading">Loading every pro game of 2026…</div></div></main>
 <footer><div class="wrap">
-  <p>Rift Ledger is a free fan project. Game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; images from Riot's Data Dragon.</p>
-  <p>Rift Ledger isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+  <p>pros.gg is a free fan project. Game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; images from Riot's Data Dragon.</p>
+  <p>pros.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
   <p id="built"></p>
 </div></footer>
 <script>
@@ -511,7 +511,7 @@ async function home() {
     .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr).slice(0, 12);
   const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= Math.min(15, Math.max(5, ng / 120))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
   const lgs = {}; for (const t of S.idx.tours) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
-  page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>RIFT LEDGER</div>
+  page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>PROS.GG</div>
     <div class="tag">Every pro League of Legends game of 2026 — match histories, builds and stats.</div>
     <div class="bigsearch search"><div class="lg"><label for="hscope">Region</label><select id="hscope">${$("#scope").innerHTML.replace(">All of 2026<", ">All<")}</select></div><span class="div"></span>
       <div class="q"><label for="hq">Search</label><input id="hq" placeholder="Pro player, team or champion" autocomplete="off"></div>
@@ -1122,13 +1122,13 @@ async function route() {
     else if (p === "tournaments") toursPage();
     else if (!p) await home();
     else notFound("page");
-    const name = $("h1")?.textContent; document.title = name && p ? `${name} · Rift Ledger` : "Rift Ledger · every pro game of 2026";
+    const name = $("h1")?.textContent; document.title = name && p ? `${name} · pros.gg` : "pros.gg · every pro game of 2026";
   } catch (e) {
     console.error(e);
     const kind = { player: "player", team: "team", champion: "champion", game: "game", t: "tournament", h2h: "player" }[parts[0]];
     if (/ 404$/.test(e.message) && kind) notFound(kind);
     else page(`<div class="nf"><h1>Something went wrong</h1><p class="muted">This page didn't load. Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Home</a></p></div>`);
-    document.title = "Rift Ledger";
+    document.title = "pros.gg";
   }
 }
 // friendly 404: old links, typos, players who changed IDs

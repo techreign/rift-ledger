@@ -1,4 +1,4 @@
-# Rift Ledger
+# pros.gg
 
 Every 2026 pro League of Legends game in one op.gg-style site: player match histories (filters, last-20 summary, form
 graph, played-with, lane opponents), champion pages (builds, skill order, full runes, counters, synergy), a tier list by
@@ -26,6 +26,6 @@ responding. Team logos and player photos are hotlinked from the lolesports API.
 
 ## Credits
 
-Game data from [Games of Legends (gol.gg)](https://gol.gg); images from Riot's Data Dragon. Rift Ledger isn't endorsed
+Game data from [Games of Legends (gol.gg)](https://gol.gg); images from Riot's Data Dragon. pros.gg isn't endorsed
 by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or
 managing Riot Games properties.
