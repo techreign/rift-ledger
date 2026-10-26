@@ -87,7 +87,7 @@ body.home header .search { visibility: hidden; }
 .biglogo i { width: 46px; height: 46px; border: 4px solid var(--gold); transform: rotate(45deg); border-radius: 6px; position: relative; flex: none; }
 .biglogo i::after { content: ""; position: absolute; inset: 8px; background: var(--gold); border-radius: 2px; }
 .landing .tag { color: #c9ced8; margin: 10px 0 34px; font-size: 15px; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
-.bigsearch { position: relative; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #31313c; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05); text-align: left; padding: 0 30px 0 36px; }
+.bigsearch { position: relative; flex: none; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #31313c; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05); text-align: left; padding: 0 30px 0 36px; }
 .bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #5383e8; }
 .bigsearch .lg { display: flex; flex-direction: column; justify-content: center; padding-right: 16px; width: 210px; flex: none; position: relative; }
 .bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #9e9eb1; pointer-events: none; }
@@ -212,6 +212,7 @@ body.home header .search { visibility: hidden; }
 .tl span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tini { display: inline-grid; place-items: center; flex: none; border-radius: 6px; background: var(--panel2); color: var(--gold2); font-weight: 800; font-size: 9px; letter-spacing: .02em; }
 .pph { object-fit: cover; object-position: top; background: #0b0d11; flex: none; }
+.pmono { display: inline-grid; place-items: center; flex: none; font-weight: 800; letter-spacing: .02em; line-height: 1; box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
 .star { background: none; border: 1px solid var(--line); border-radius: 8px; color: var(--dim); cursor: pointer; padding: 4px 9px; font-size: 13px; }
 .star.on { color: var(--gold); border-color: var(--gold); }
 .sugg .sh { padding: 7px 12px 4px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); display: flex; justify-content: space-between; }
@@ -345,7 +346,11 @@ const champImg = (c, sz = 32, cls = "ci") => `<img class="${cls}" src="${DD}${S.
 const cname = (c) => (S.champs[c] && S.champs[c].n) || c;
 // team logo (lolesports, hotlinked) or initials; player photo or their most played champion
 const tLogo = (id, sz = 20) => { const t = S.teams[id]; return t?.lo ? `<img class="logo-img" src="${esc(t.lo)}" width="${sz}" height="${sz}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">` : `<span class="tini" style="width:${sz}px;height:${sz}px">${esc(initials(t?.n || "?").slice(0, 3))}</span>`; };
-const pPhoto = (p, sz = 32, r = "50%") => p?.ph ? `<img class="pph" src="${esc(p.ph)}" width="${sz}" height="${sz}" style="border-radius:${r}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.f))" data-f="${esc(champImg(p.top?.[0], sz, "ci r"))}">` : champImg(p?.top?.[0], sz, "ci r");
+// players without a photo get a monogram (2 letters on a name-tinted circle), not a champion face
+const monoTxt = (n = "") => (n.replace(/[^A-Za-z0-9]/g, "").slice(0, 2) || "?").toUpperCase();
+const pMono = (p, sz = 32, r = "50%") => { const n = p?.n || "", h = [...n].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 360, 7);
+  return `<span class="pmono" style="width:${sz}px;height:${sz}px;border-radius:${r};font-size:${Math.round(sz * .4)}px;background:hsl(${h} 28% 24%);color:hsl(${h} 45% 78%)">${esc(monoTxt(n))}</span>`; };
+const pPhoto = (p, sz = 32, r = "50%") => p?.ph ? `<img class="pph" src="${esc(p.ph)}" width="${sz}" height="${sz}" style="border-radius:${r}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.f))" data-f="${esc(pMono(p, sz, r))}">` : pMono(p, sz, r);
 const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem("rl." + k)) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem("rl." + k, JSON.stringify(v)); } catch {} },
@@ -706,7 +711,7 @@ async function playerPage(id, q) {
   const rows = tsel ? all.filter((r) => r.t === tsel) : all;
   const a = agg(rows), last = d.rows[0];
   remember({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) });
-  page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : champImg(topChamp(d.rows), 84)}</div>
+  page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : esc(monoTxt(me.n))}</div>
       <div><h1>${esc(d.n)}</h1><div class="sub"><span class="role">${RL[mainRole(d.rows)]}</span>${tLink(last.tm, last.tn, 20)}<span class="pill">${esc(S.tours[last.t]?.lg || "")}</span><span class="faint">${d.rows.length} games in 2026</span></div>
       <div class="sub" style="margin-top:10px">${favBtn({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) })}<a class="star" href="#/compare?ids=${id}">⇄ Compare</a></div></div>
       <div class="kpis">${donut(a.wr)}<div class="kpi"><b>${a.w}W ${a.g - a.w}L</b><span>${esc(tsel ? S.tours[tsel].n : scopeName())}</span></div>
@@ -804,7 +809,6 @@ function rankCards(id, all, tsel) {
       return `<a class="${tsel === t ? "on" : ""}" href="#/player/${id}?${new URLSearchParams({ tr: t, ...(S.scope && { s: S.scope }) })}"><span class="tg">${tag(t)}</span>
         <span class="nm"><b>${esc(S.tours[t].n)}</b><span>${esc(rs[0].tn)} · ${ago(rs[0].dt)}</span></span><span class="rec"><span>${a.w}W ${a.g - a.w}L</span><span class="${wrCls(a.wr)}">${a.wr}%</span></span></a>`; }).join("")}</div></div>`;
 }
-const topChamp = (rows) => [...groupBy(rows, "c")].sort((a, b) => b[1].length - a[1].length)[0][0];
 const mainRole = (rows) => [...groupBy(rows, "r")].sort((a, b) => b[1].length - a[1].length)[0][0];
 function mhList(el, rows, opts) {
   let n = 20;
