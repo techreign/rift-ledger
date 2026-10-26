@@ -119,6 +119,7 @@ body.home header .search { visibility: hidden; }
 .gl .side { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .prof > div > .logo-img, .prof > div > .tini { margin: 0 auto 6px; }
 .gl .side.r { flex-direction: row-reverse; text-align: right; }
+.gl .nm { display: grid; gap: 4px; min-width: 0; } .gl .side.r .mini { justify-content: flex-end; }
 .gl .tn { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gl .tn.w { color: var(--gold2); } .gl .tn.l { color: var(--faint); }
 .gl .mid { text-align: center; font-size: 11.5px; color: var(--faint); min-width: 120px; }
@@ -515,9 +516,9 @@ async function home() {
 const sumBy = (by) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (inScope(t)) v.forEach((x, i) => (s[i] += x)); return s; };
 function gameLine(g) {
   const [a, b] = g.tm;
-  return `<a href="${gLink(g.t, g.g)}"><div class="side">${tLogo(a[0], 22)}<span class="tn ${a[2] ? "w" : "l"}">${esc(a[1])}</span><div class="mini">${a[4].map((c) => champImg(c, 20)).join("")}</div></div>
+  return `<a href="${gLink(g.t, g.g)}"><div class="side">${tLogo(a[0], 30)}<div class="nm"><span class="tn ${a[2] ? "w" : "l"}">${esc(a[1])}</span><div class="mini">${a[4].map((c) => champImg(c, 20)).join("")}</div></div></div>
     <div class="mid"><b>${a[3]} – ${b[3]}</b>${mmss(g.len)}</div>
-    <div class="side r">${tLogo(b[0], 22)}<span class="tn ${b[2] ? "w" : "l"}">${esc(b[1])}</span><div class="mini">${b[4].map((c) => champImg(c, 20)).join("")}</div></div>
+    <div class="side r">${tLogo(b[0], 30)}<div class="nm"><span class="tn ${b[2] ? "w" : "l"}">${esc(b[1])}</span><div class="mini">${b[4].map((c) => champImg(c, 20)).join("")}</div></div></div>
     <div class="meta"><span>${esc(S.tours[g.t]?.n || "")} · ${esc(g.st || "")}</span><span>${ago(g.dt)}</span></div></a>`;
 }
 
