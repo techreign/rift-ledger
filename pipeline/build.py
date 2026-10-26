@@ -18,6 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DIST, OUT = ROOT / "dist", ROOT / "dist" / "data"
 CACHE = ROOT / "cache"
+# public address: og/share tags and canonical link point here. To move to a custom domain, set this to
+# "https://pros.gg/" and add the domain under repo Settings -> Pages (see README "Custom domain").
+SITE = "https://techreign.github.io/rift-ledger/"
 
 def get_json(url, name):
     p = CACHE / name
@@ -389,7 +392,10 @@ def main():
         teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))
     (OUT / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
-    shutil.copy(ROOT / "src" / "app.html", DIST / "index.html")
+    page = (ROOT / "src" / "app.html").read_text(encoding="utf-8").replace("https://techreign.github.io/rift-ledger/", SITE)
+    (DIST / "index.html").write_text(page, encoding="utf-8")
+    (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}sitemap.xml\n", encoding="utf-8")
+    (DIST / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>{SITE}</loc></url></urlset>\n', encoding="utf-8")
     if (ROOT / "static").exists(): shutil.copytree(ROOT / "static", DIST, dirs_exist_ok=True)
     unmatched = sorted(k for k, v in champ_id.items() if v not in {x[0] for x in dd["champs"].values()})
     if unmatched: print("champions not in Data Dragon:", unmatched, file=sys.stderr)

@@ -89,8 +89,8 @@ def main():
             (OUT / "bridge.json").write_text(json.dumps(bridge(f), separators=(",", ":")), encoding="utf-8")
             continue
         doc = convert(f, year)
-        with gzip.open(OUT / f"{year}.json.gz", "wt", encoding="utf-8", compresslevel=9) as out:
-            json.dump(doc, out, separators=(",", ":"))
+        # mtime=0 keeps the bytes identical across runs, so unchanged years don't show up as modified in git
+        (OUT / f"{year}.json.gz").write_bytes(gzip.compress(json.dumps(doc, separators=(",", ":")).encode(), 9, mtime=0))
     for f in sorted(OUT.iterdir()): print(f"  {f.name}: {f.stat().st_size / 1e6:.1f} MB")
 
 if __name__ == "__main__":

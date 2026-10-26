@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-26 (lifetime data)
+Last updated: 2026-10-26 (2016-19 added, domain prep)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -45,11 +45,12 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
   DecompressionStream). Old-only ids are 'o'+oracle hex. App: S.season ('' = 2026, 'all', year) via ?y=, header +
   landing + tier-list season selects, loadLife() merges the old index on demand, rowsOf()/shardOf()/metaOf() loaders,
   Seasons card (op.gg past seasons) on player/team pages from index `yrs`. dist ≈ 301 MB.
-- Missing: 2016-2019 (Drive said "quota exceeded"; file ids in oracle.py notes below). SK Telecom T1 (2014-15) is a
-  separate team from T1 (Oracle uses a different team id).
-- Drive ids: 2016 1muyfpaIqk8_0BFkgLCWXDGNgWSXoPBwG, 2017 11fx3nNjSYB0X8vKxLAbYOrS2Bu6avm9A,
-  2018 1GsNetJQOMx0QJ6_FN8M1kwGvU_GPPcPZ, 2019 11eKtScnZcpfZcD3w3UrD7nnpfLHvj9_t
-  (https://drive.usercontent.google.com/download?id=<id>&export=download&confirm=t)
+- 2016-2019 added 2026-10-26 (Drive quota had reset): 93,220 games 2014-2025, dist ≈ 356 MB (Pages limit 1 GB).
+  oracle.py writes gzip with mtime=0 so re-runs don't dirty git. SK Telecom T1 (2014-19 id) is still a separate
+  team from T1.
 
 ## 2026-10-26 update
 - Renamed to pros.gg (display text, og.png, favicon). Domain not bought; URL unchanged.
+- Launch prep: build.py SITE constant drives canonical/og URLs, robots.txt, sitemap.xml. README "Custom domain"
+  has the DNS records + Pages steps. Still on the user: buy pros.gg, set DNS, Pages custom domain, flip SITE;
+  send gol.gg the permission note.

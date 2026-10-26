@@ -34,6 +34,17 @@ GitHub Pages' 1 GB limit.
 `data/`, builds and deploys to GitHub Pages. Both scrapers run at 1 request/second and stop on their own if gol.gg stops
 responding. Team logos and player photos are hotlinked from the lolesports API.
 
+### Custom domain
+
+1. Buy the domain and add these DNS records at the registrar: `A @` → 185.199.108.153, 185.199.109.153,
+   185.199.110.153, 185.199.111.153; `AAAA @` → 2606:50c0:8000::153, 2606:50c0:8001::153, 2606:50c0:8002::153,
+   2606:50c0:8003::153; `CNAME www` → techreign.github.io.
+2. Repo Settings → Pages → Custom domain: enter it, wait for the DNS check, tick "Enforce HTTPS". (With Actions
+   deploys, Pages ignores a CNAME file, so this setting is the only place the domain lives.)
+3. Set `SITE` in `pipeline/build.py` to the new address (e.g. `https://pros.gg/`) and push. Share tags, the
+   canonical link, robots.txt and sitemap.xml follow it. The data paths are relative, so nothing else changes, and
+   the old github.io address redirects to the new domain on its own.
+
 ## Credits
 
 2026 game data from [Games of Legends (gol.gg)](https://gol.gg); earlier seasons from
