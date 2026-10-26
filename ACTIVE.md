@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-26
+Last updated: 2026-10-26 (launch prep)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -29,9 +29,15 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - The builds ajax lives at /game/ajax.build.php (base href /game/), POST game_id & player_id (= our pid).
 
 ## Status / next
-- Live with 6,863 games at first deploy; the Action is filling the rest + extras (builds/timeline backfill ~250 games
-  per run → a few days for the season). Champion build sections say "still being collected" until then.
+- Launch prep done 2026-10-26: bot commit step rebases before pushing and builds after (data runs deploy latest code;
+  code pushes have their own concurrency group so they don't wait behind scrapes); friendly 404/error pages;
+  leaderboards + home KDA default to MAJOR leagues (regex MAJOR in app.html, toggle lv=all); OG/Twitter tags +
+  static/og.png (pipeline/og.py, re-run after a rename) + favicon; lolesports matching with TEAM_ALIAS, accent folding,
+  contains-match (287/307 logos), photos outside a team need name+role (975); home `recent` keeps newest per league.
+- First data run (2026-10-26 00:10) was cancelled: it used the old workflow and its push would have been rejected.
+  Re-run 40254057792 on the fixed workflow fills the remaining ~1.5k games + 40 min of extras.
+- Before sharing: pick the name/domain (prop.gg is taken, reads like betting); ask gol.gg (X: @bynjee / Patreon) for
+  their OK; wait ~2 days for build/timeline extras on major leagues.
 - Accuracy: per-champion picks/bans matched gol.gg exactly for LCK Rounds 1-2, MSI, LPL Split 2.
-- Name: user floated "prop.gg" (domain taken; "prop" reads like prop bets → fan-policy risk). Undecided.
 - TODO (user asked to remember): LIFETIME data (all gol.gg seasons) as an option, not the default. Needs a season
   dimension + data diet (6.9k games ≈ 120 MB dist already).
