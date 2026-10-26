@@ -41,3 +41,7 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Accuracy: per-champion picks/bans matched gol.gg exactly for LCK Rounds 1-2, MSI, LPL Split 2.
 - TODO (user asked to remember): LIFETIME data (all gol.gg seasons) as an option, not the default. Needs a season
   dimension + data diet (6.9k games ≈ 120 MB dist already).
+
+## 2026-10-26 update
+- Renamed to pros.gg (display text, og.png, favicon). Domain not bought; URL unchanged.
+- Lifetime data plan: use saved Oracle's Elixir CSVs (~/dev/worlds-data 2020-26, ~/dev/lol-pro-predictor/data 2014-15; 2016-19 need download).
