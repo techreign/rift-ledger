@@ -109,17 +109,21 @@ def main():
     if have and not (D / "list.done").exists():  # an earlier run was cut off before reaching --since
         more, done = walk(min(have), 0); fresh += more
     if done or (D / "list.done").exists(): (D / "list.done").write_text("1")
-    known = sorted(known + fresh, key=lambda m: -m["match_id"])
+    keys = ("match_id", "start_time", "leagueid")  # all the fetch needs; keeps the committed list small
+    known = sorted(({k: m[k] for k in keys} for m in known + fresh), key=lambda m: -m["match_id"])
     lp.write_text(json.dumps(known, separators=(",", ":")), encoding="utf-8")
     print(f"listed {len(known)} pro matches since {a.since} (+{len(fresh)})", flush=True)
 
     tier = lambda m: (leagues.get(m["leagueid"]) or {}).get("tier")
     todo = [m for m in known if tier(m) in TIERS and not (D / "m" / f"{m['match_id']}.json").exists()]
     todo.sort(key=lambda m: (tier(m) != "premium", -m["match_id"]))
-    got = 0
+    got, fails = 0, 0
     for m in todo:
-        if time.time() > stop or left["day"] < 60: break
-        d = get(f"matches/{m['match_id']}")
+        if time.time() > stop or left["day"] < 60 or fails >= 5: break
+        try: d = get(f"matches/{m['match_id']}"); fails = 0
+        except SystemExit: raise
+        except Exception as e:  # OpenDota 500s on the odd match; skip it, but stop if the API itself is down
+            print("match", m["match_id"], e, file=sys.stderr); fails += 1; continue
         if d and d.get("players"):
             (D / "m" / f"{m['match_id']}.json").write_text(json.dumps(trim(d), separators=(",", ":")), encoding="utf-8"); got += 1
     print(f"details: +{got}, {len(todo) - got} still to fetch, {left['day']} calls left today")

@@ -353,7 +353,7 @@ async function matchPage(id) {
     if (t === "ov") el.innerHTML = `<div class="card" style="overflow:hidden">${scoreboard(g)}</div>`;
     else if (t === "gold") el.innerHTML = advGraph(g);
     else if (t === "draft") el.innerHTML = draft(g);
-    else el.innerHTML = `<div class="card">${g.pl.map((p) => `<div style="padding:10px 14px;border-top:1px solid var(--line)"><div class="who">${heroImg(p.h, 28, "hi")}<b>${esc(p.n)}</b><span class="faint">${esc(H(p.h)[0])} · ${POS[p.pos]}</span></div>
+    else el.innerHTML = `<div class="card">${g.pl.map((p) => `<div style="padding:10px 14px;border-top:1px solid var(--line)"><div class="who" style="display:flex;align-items:center;gap:8px">${heroImg(p.h, 28, "hi")}<b>${esc(p.n)}</b><span class="faint">${esc(H(p.h)[0])} · ${POS[p.pos]}</span></div>
         <div class="bo">${p.bu.length ? p.bu.map(([m, k]) => { const i = Object.keys(S.idx.items).find((x) => S.idx.items[x][0] === k); return `<div>${i ? itemImg(+i, 30) : `<span class="faint">${esc(k)}</span>`}<span>${m}m</span></div>`; }).join("") : `<span class="faint">No purchase log for this match.</span>`}</div></div>`).join("")}</div>`;
     fixLinks(el);
   };

@@ -198,7 +198,7 @@ def write_pages(dist, page, site):
            f"op.gg for pro play: match histories, champion pools, builds, tier list and leaderboards for every pro LoL game since {first}.", home)
     nf = APP.sub(lambda m: m[1] + '<div class="loading">Loading…</div>' + m[2], shell, count=1)
     dota = base + "dota/"
-    nf = nf.replace("</head>", '<script>if(location.pathname.indexOf("' + dota + '")===0)location.replace("' + dota + '#/"'
+    nf = nf.replace("</head>", '<script>if(location.pathname.indexOf("' + dota + '")===0&&location.pathname.length>' + str(len(dota)) + ')location.replace("' + dota + '#/"'
                     '+location.pathname.slice(' + str(len(dota)) + ').replace(/[/]$/,"")+location.search)</script>\n</head>', 1)
     (dist / "404.html").write_text(nf, encoding="utf-8")
 
