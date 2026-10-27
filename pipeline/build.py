@@ -339,13 +339,21 @@ def lifetime(cid, cname, team_of, anyp, gol_players, gol_teams):
         t.update(g=len(ds), a=min(ds), b=max(ds))
     recent = []
     for y in sorted({t["y"] for t in tours}, reverse=True):
-        recent += recent_games([g for g in games if year[g["t"]] == y], [t for t in tours if t["y"] == y], n=60, per=6, per_t=3)
+        recent += recent_games([g for g in games if year[g["t"]] == y], [t for t in tours if t["y"] == y], n=30, per=4, per_t=2)
     recent = [dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], pa=g["patch"],
         tm=[[t["id"], t["name"], int(t["win"]), t["k"], [p["ci"] for p in g["players"] if p["side"] == i]] for i, t in enumerate(g["teams"])]) for g in recent]
     seasons = [dict(y=y, n=sum(t["g"] for t in tours if t["y"] == y)) for y in sorted({t["y"] for t in tours}, reverse=True)]
+    # per-tournament stats are most of the weight, so they go in one file per year (h/by/<year>.json.gz) and the app
+    # loads only the seasons being viewed; h/index.json.gz keeps names, teams, tournaments and totals
+    champs = [dict(c=c, n=cname.get(c, c), by=dict(per)) for c, per in champ_t.items()]
+    per_year = defaultdict(lambda: dict(p={}, t={}, c={}))
+    for items, k, key in ((players, "p", "id"), (teams, "t", "id"), (champs, "c", "c")):
+        for x in items:
+            for t, v in x.pop("by").items(): per_year[year[t]][k].setdefault(x[key], {})[t] = v
+    (OUT / "h" / "by").mkdir(parents=True, exist_ok=True)
+    for y, d in per_year.items(): gz(OUT / "h" / "by" / f"{y}.json.gz", d)
     gz(OUT / "h" / "index.json.gz", dict(n=len(games), tours=sorted(tours, key=lambda t: t["b"], reverse=True),
-        players=sorted(players, key=lambda p: -p["g"]), teams=sorted(teams, key=lambda t: -t["g"]),
-        champs=[dict(c=c, n=cname.get(c, c), by=dict(per)) for c, per in champ_t.items()], recent=recent))
+        players=sorted(players, key=lambda p: -p["g"]), teams=sorted(teams, key=lambda t: -t["g"]), champs=champs, recent=recent))
     linked = sum(1 for p in pinfo if not str(p).startswith("o"))
     print(f"lifetime: {len(games)} games {seasons[-1]['y']}-{seasons[0]['y']}, {len(players)} players ({linked} linked to 2026 pros), {len(teams)} teams")
     return yrs, tyrs, seasons
@@ -473,19 +481,26 @@ def main():
 
     recent = [dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], pa=g["patch"], st=g["stage"],
         tm=[[t["id"], t["name"], int(t["win"]), t["k"], [p["ci"] for p in g["players"] if p["side"] == i]] for i, t in enumerate(g["teams"])])
-        for g in recent_games(games, tours)]
+        for g in recent_games(games, tours, n=60, per=14, per_t=6)]
     for t in tours: t["y"] = 2026
     yrs, tyrs, seasons = lifetime(cid, {v[0]: v[1] for v in dd["champs"].values()}, team_of, anyp, players, teams)
     for p in players:
         if p["id"] in yrs: p["yrs"] = yrs[p["id"]]
     for t in teams:
         if t["id"] in tyrs: t["yrs"] = tyrs[t["id"]]
+    # season summaries repeat the same few logo URLs every year: store each once, yrs keep an index into `logos`
+    logos = []
+    for x in players + teams:
+        for v in (x.get("yrs") or {}).values():
+            if isinstance(v[6], str) and v[6]:
+                if v[6] not in logos: logos.append(v[6])
+                v[6] = logos.index(v[6])
     lnames = {t["lg"] for t in tours}
     hidx = OUT / "h" / "index.json.gz"
     if hidx.exists(): lnames |= {t["lg"] for t in json.loads(gzip.decompress(hidx.read_bytes()))["tours"]}
     lglo = league_logos(sorted(lnames))
     print(f"league logos: {len(lglo)}/{len(lnames)}")
-    index = dict(lglo=lglo, built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
+    index = dict(lglo=lglo, logos=logos, built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
         tours=sorted(tours, key=lambda t: t["b"] or "", reverse=True), players=sorted(players, key=lambda p: -p["g"]),
         teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))

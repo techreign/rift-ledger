@@ -63,6 +63,14 @@ def write_pages(dist, page, site):
     idx = json.loads((dist / "data" / "index.json").read_text(encoding="utf-8"))
     hp = dist / "data" / "h" / "index.json.gz"
     life = json.loads(gzip.decompress(hp.read_bytes())) if hp.exists() else dict(players=[], teams=[], champs=[], tours=[])
+    # per-tournament stats for earlier seasons live in one file per year (h/by/<year>.json.gz)
+    for f in sorted((dist / "data" / "h" / "by").glob("*.json.gz")):
+        d = json.loads(gzip.decompress(f.read_bytes()))
+        for k, items, key in (("p", life["players"], "id"), ("t", life["teams"], "id"), ("c", life["champs"], "c")):
+            for x in items:
+                if x[key] in d[k]: x.setdefault("by", {}).update(d[k][x[key]])
+    for items in (life["players"], life["teams"], life["champs"]):
+        for x in items: x.setdefault("by", {})
     tours = {t["s"]: t for t in idx["tours"]}
     tours.update({t["s"]: t for t in life["tours"]})
     hplayers = {p["id"]: p for p in life["players"]}

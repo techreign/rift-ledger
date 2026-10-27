@@ -527,17 +527,29 @@ const tLink = (id, n, sz = 0) => sz ? `<a class="tl" href="${link("team/" + id)}
 const gLink = (t, g) => link(`game/${t}/${g}`);
 
 // ---------------- past seasons: merged into the index the first time a viewer leaves the 2026 view
+// earlier seasons: h/index.json.gz has names, teams, tournaments and totals; the per-tournament stats come one year
+// at a time (h/by/<year>.json.gz), so opening 2019 doesn't download all twelve seasons
 let LIFE = null;
-function loadLife() {
-  return (LIFE ||= J("h/index.json.gz").then((h) => {
+const YEARS = new Map();
+function loadLife(y) {
+  LIFE ||= J("h/index.json.gz").then((h) => {
     for (const t of h.tours) S.tours[t.s] = t;
     S.idx.tours = S.idx.tours.concat(h.tours);
-    const merge = (list, map, key, x) => { const cur = map[x[key]]; if (cur) { cur.by = { ...cur.by, ...x.by }; cur.g = (cur.g || 0) + (x.g || 0); } else { map[x[key]] = x; list.push(x); } };
+    const merge = (list, map, key, x) => { const cur = map[x[key]]; if (cur) cur.g = (cur.g || 0) + (x.g || 0); else { x.by ||= {}; map[x[key]] = x; list.push(x); } };
     for (const p of h.players) merge(S.idx.players, S.players, "id", p);
     for (const t of h.teams) merge(S.idx.teams, S.teams, "id", t);
     for (const c of h.champs) merge(S.idx.champs, S.champs, "c", c);
     S.idx.recent = S.idx.recent.concat(h.recent);
-  }).catch((e) => { LIFE = null; throw e; }));
+  }).catch((e) => { LIFE = null; throw e; });
+  const ys = y === "all" ? S.idx.seasons.map((s) => s.y).filter((v) => v !== CUR) : y ? [+y] : [];
+  return LIFE.then(() => Promise.all(ys.map(loadYear)));
+}
+const lifeReady = (y) => LIFE && (y === "all" ? S.idx.seasons.every((s) => s.y === CUR || YEARS.has(s.y)) : !y || YEARS.has(+y));
+function loadYear(y) {
+  if (!YEARS.has(y)) YEARS.set(y, J(`h/by/${y}.json.gz`).then((d) => {
+    for (const [k, map] of [["p", S.players], ["t", S.teams], ["c", S.champs]]) for (const [id, by] of Object.entries(d[k])) if (map[id]) map[id].by = { ...map[id].by, ...by };
+  }).catch((e) => { YEARS.delete(y); throw e; }));
+  return YEARS.get(y);
 }
 const miss = (e) => { if (/ 404$/.test(e.message)) return null; throw e; };
 // player / team / champion file: 2026 rows, plus earlier seasons when the view needs them (or the id has nothing in 2026)
@@ -573,7 +585,7 @@ function seasonsOf(rows, yrs, self) {
     const t = x.tm.get(r.tm) || { n: r.tn, g: 0 }; t.g++; x.tm.set(r.tm, t);
   }
   const out = Object.values(m).map(({ tm, ...x }) => { const [id, t] = [...tm].sort((p, q) => q[1].g - p[1].g)[0]; return { ...x, tn: t.n || self?.n, lo: S.teams[id]?.lo || self?.lo || "" }; });
-  for (const [y, v] of Object.entries(yrs || {})) if (!m[y]) out.push({ y: +y, g: v[0], w: v[1], k: v[2], d: v[3], a: v[4], tn: v[5], lo: v[6] });
+  for (const [y, v] of Object.entries(yrs || {})) if (!m[y]) out.push({ y: +y, g: v[0], w: v[1], k: v[2], d: v[3], a: v[4], tn: v[5], lo: typeof v[6] === "number" ? S.idx.logos[v[6]] : v[6] });
   return out.sort((a, b) => b.y - a.y);
 }
 // season dropdown for the profile's Season box: this player's seasons + All time
@@ -1424,8 +1436,8 @@ async function route() {
   const y = q.get("y") ?? ((parts[0] === "player" || parts[0] === "team") && /^o/.test(parts[1] || "") ? "all" : "");
   const season = /^(all|\d{4})$/.test(y) && y != CUR ? y : "";
   if (season || ((parts[0] === "game" || parts[0] === "t") && isOldT(parts[1] || ""))) {
-    if (!LIFE) app().innerHTML = `<div class="loading">Loading every season since ${S.idx.seasons.at(-1).y}…</div>`;
-    try { await loadLife(); } catch (e) { console.error(e); page(`<div class="nf"><h1>Couldn't load earlier seasons</h1><p class="muted">Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Back to ${CUR}</a></p></div>`); return; }
+    if (!lifeReady(season)) app().innerHTML = `<div class="loading">${season === "all" ? `Loading every season since ${S.idx.seasons.at(-1).y}…` : season ? `Loading ${season}…` : "Loading…"}</div>`;
+    try { await loadLife(season); } catch (e) { console.error(e); page(`<div class="nf"><h1>Couldn't load earlier seasons</h1><p class="muted">Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Back to ${CUR}</a></p></div>`); return; }
   }
   if (season !== S.season) { S.season = season; buildScope(); }
   S.scope = q.get("s") || ""; $("#scope").value = S.scope; $("#season").value = S.season;
