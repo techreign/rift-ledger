@@ -212,6 +212,13 @@ body.home header .search { visibility: hidden; }
 .xbtn { width: 28px; height: 100%; min-height: 60px; border: 0; border-radius: 6px; background: rgba(255,255,255,.04); cursor: pointer; color: var(--dim); }
 .xbtn:hover { background: rgba(255,255,255,.1); color: var(--text); }
 .mh .items { display: grid; grid-template-columns: repeat(4, 26px); }
+/* both teams, op.gg style: two columns of champion + player, the row's player in bold */
+.mh .tms { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; font-size: 11.5px; min-width: 0; }
+.mh .tms > div { display: grid; gap: 1px; min-width: 0; }
+.mh .tms a { display: flex; align-items: center; gap: 4px; color: var(--dim); white-space: nowrap; overflow: hidden; min-width: 0; }
+.mh .tms a span { overflow: hidden; text-overflow: ellipsis; }
+.mh .tms a:hover { color: var(--text); } .mh .tms a.me { color: var(--text); font-weight: 700; }
+.mh .tms img { width: 15px; height: 15px; border-radius: 3px; flex: none; }
 .grid2 > .stack .tbl th, .grid2 > .stack .tbl td { padding: 7px 7px; }
 .detail { margin: -2px 0 6px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
 
@@ -334,7 +341,7 @@ footer p { margin: 4px 0; }
 @media (max-width: 1000px) {
   .grid2, .grid2b { grid-template-columns: minmax(0, 1fr); }
   .mh { grid-template-columns: 82px 100px 1fr 26px; }
-  .mh .st, .mh .vs { display: none; }
+  .mh .st, .mh .vs, .mh .tms { display: none; }
   .mh .items { grid-column: 2 / 4; }
   .bar { flex-wrap: wrap; height: auto; padding-top: 10px; padding-bottom: 0; row-gap: 6px; }
   nav.main { order: 9; width: 100%; overflow-x: auto; scrollbar-width: none; padding-bottom: 6px; }
@@ -573,6 +580,12 @@ const groupBy = (rows, key) => { const m = new Map(); for (const r of rows) { co
 function donut(wr) { return `<div class="donut" style="background:conic-gradient(var(--win) 0 ${wr}%, var(--loss) ${wr}% 100%)"><span>${wr}%</span></div>`; }
 const scopeGames = () => S.idx.tours.filter((t) => inScope(t.s)).reduce((s, t) => s + t.g, 0);
 
+// both lineups for a player's row: blue then red, role order; the row's player is the one on their side with their champion
+function teamsCol(r) {
+  const pname = (id) => S.players[id]?.n || "?";
+  const col = (team, side) => `<div>${team.map(([id, c]) => `<a href="${link("player/" + id)}" class="${side === r.s && c === r.c ? "me" : ""}" title="${esc(pname(id))} · ${esc(cname(c))}">${champImg(c, 15)}<span>${esc(pname(id))}</span></a>`).join("")}</div>`;
+  return `<div class="tms">${r.ln.map(col).join("")}</div>`;
+}
 // ---------------- match history row (shared by player + champion pages)
 function mhRow(r, opts = {}) {
   const it = r.it || [], items = it.filter((i) => !TRINKETS.has(i)), trinket = it.find((i) => TRINKETS.has(i));
@@ -585,7 +598,7 @@ function mhRow(r, opts = {}) {
     <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.lvl ? `<span>Level ${r.lvl}</span>` : ""}</div>
     <div class="st"><span>CS ${r.cs} (${f1(r.cs / m)})</span><span>KP ${r.kp != null ? Math.round(r.kp) + "%" : "–"}</span><span>DMG ${kfmt(r.dmg)}</span><span>GD@15 <b class="${r.gd15 > 0 ? "good" : r.gd15 < 0 ? "bad" : ""}">${r.gd15 > 0 ? "+" : ""}${r.gd15 ?? "–"}</b></span></div>
     <div class="items">${it.length ? items.slice(0, 6).map((i) => itemImg(i)).join("") + itemImg(trinket) : ""}</div>
-    <div class="vs">${who}<div><span class="faint">vs</span>${r.oc ? champImg(r.oc, 18, "ci r") : ""}${tLink(r.op, r.on, 16)}</div></div>
+    ${r.ln && !opts.showPlayer ? teamsCol(r) : `<div class="vs">${who}<div><span class="faint">vs</span>${r.oc ? champImg(r.oc, 18, "ci r") : ""}${tLink(r.op, r.on, 16)}</div></div>`}
     <button class="xbtn" title="Full scoreboard" aria-label="Show full scoreboard">▾</button>
   </div>`;
 }
