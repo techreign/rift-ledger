@@ -249,6 +249,16 @@ body.home header .search { visibility: hidden; }
 .prof { display: flex; gap: 18px; align-items: center; padding: 20px; }
 .avatar { width: 84px; height: 84px; border-radius: 18px; background: linear-gradient(135deg, #2b2f3b, #1b1e26); border: 2px solid var(--gold); display: grid; place-items: center; font-size: 30px; font-weight: 800; color: var(--gold2); overflow: hidden; flex-shrink: 0; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+/* player portrait: the lolesports cutout shown big, on a spotlight with the team logo behind, standing on the card's bottom edge */
+.card.phero .kpis { gap: 22px; }
+.card.phero { overflow: hidden; background: linear-gradient(100deg, rgba(200,170,110,.16), rgba(200,170,110,0) 38%), var(--panel); }
+.avatar.cut { width: 172px; height: 164px; border: 0; border-radius: 0; background: none; position: relative; overflow: visible; display: block; align-self: flex-end; margin: -8px 0 -20px -6px; }
+.avatar.cut::before { content: ""; position: absolute; inset: 0 -10% 0; background: radial-gradient(ellipse 55% 80% at 50% 100%, rgba(200,170,110,.5), rgba(200,170,110,.14) 55%, rgba(200,170,110,0) 78%); }
+.avatar.cut .wm { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-8deg); opacity: .22; }
+.avatar.cut .wm .tini { font-size: 40px; }
+.avatar.cut img.pph { position: absolute; left: 50%; bottom: 0; width: 228px; height: 180px; max-width: none; transform: translateX(-50%); object-fit: contain; object-position: 50% 100%; background: none;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,.65)); -webkit-mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); }
+.avatar.cut::after { content: ""; position: absolute; left: 8%; right: 8%; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
 .prof h1 { font-size: 28px; }
 .prof .sub { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; align-items: center; }
 .kpis { display: flex; gap: 26px; margin-left: auto; flex-wrap: wrap; }
@@ -459,6 +469,7 @@ footer p { margin: 4px 0; }
 @media (max-width: 640px) {
   .bar { gap: 10px; } .logo span { display: none; } .scope { max-width: 110px; } .scope.season { max-width: 76px; }
   .prof { flex-wrap: wrap; } .kpis { margin-left: 0; gap: 16px; }
+  .avatar.cut { width: 100%; height: 176px; margin: -8px 0 4px; align-self: auto; }
   .hero h1 { font-size: 26px; } .stat-row { margin-left: 0; }
   .landing { padding: 40px 16px 28px; } .biglogo { font-size: 30px; gap: 12px; } .biglogo i { width: 28px; height: 28px; border-width: 3px; } .biglogo i::after { inset: 5px; }
   .landing .tag { font-size: 13px; margin-bottom: 22px; }
@@ -522,6 +533,8 @@ const tLogo = (id, sz = 20) => { const t = S.teams[id]; return t?.lo ? `<img cla
 const monoTxt = (n = "") => (n.replace(/[^A-Za-z0-9]/g, "").slice(0, 2) || "?").toUpperCase();
 const pMono = (p, sz = 32, r = "50%") => { const n = p?.n || "", h = [...n].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 360, 7);
   return `<span class="pmono" style="width:${sz}px;height:${sz}px;border-radius:${r};font-size:${Math.round(sz * .4)}px;background:hsl(${h} 28% 24%);color:hsl(${h} 45% 78%)">${esc(monoTxt(n))}</span>`; };
+// big profile portrait when there's a photo, the gold initials box otherwise; returns [card class, avatar html]
+const portrait = (p, name) => p?.ph ? ["phero", `<div class="avatar cut"><span class="wm">${tLogo(p.tm, 150)}</span>${pPhoto(p, 200, "0")}</div>`] : ["", `<div class="avatar">${esc(monoTxt(name))}</div>`];
 const pPhoto = (p, sz = 32, r = "50%") => p?.ph ? `<img class="pph" src="${esc(p.ph)}" width="${sz}" height="${sz}" style="border-radius:${r}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment(this.dataset.f))" data-f="${esc(pMono(p, sz, r))}">` : pMono(p, sz, r);
 const store = {
   get(k, d) { try { return JSON.parse(localStorage.getItem("rl." + k)) ?? d; } catch { return d; } },
@@ -1087,7 +1100,8 @@ async function playerPage(id, q) {
   const tsel = q.get("tr") || "";
   const all = d.rows.filter((r) => inScope(r.t));
   const ys = seasonsOf(d.rows, me.yrs), seas = seasonCard("#/player/" + id, ys);
-  if (!all.length) return page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : esc(monoTxt(d.n))}</div><div><h1>${esc(d.n)}</h1>
+  const [pcls, pav] = portrait(me, d.n);
+  if (!all.length) return page(`<div class="card ${pcls}"><div class="prof">${pav}<div><h1>${esc(d.n)}</h1>
     <div class="sub"><span class="faint">No pro games in ${esc(scopeName())}.</span> ${S.season === "all" ? "" : `<a class="star" href="#/player/${id}?y=all">See all time →</a>`}</div></div></div></div><div style="margin-top:16px">${seas}</div>`);
   const rows = tsel ? all.filter((r) => r.t === tsel) : all;
   const a = agg(rows), last = d.rows[0];
@@ -1095,7 +1109,7 @@ async function playerPage(id, q) {
   const tabUrl = (k) => { const u = new URLSearchParams(q); if (k) u.set("tab", k); else u.delete("tab"); return `#/player/${id}${u.size ? "?" + u : ""}`; };
   const tabs = `<nav class="ptabs">${PTABS.map(([k, l]) => `<a class="${k === tab ? "on" : ""}" href="${tabUrl(k)}">${k === "live" ? `<span class="lv"></span>` : ""}${l}</a>`).join("")}</nav>`;
   remember({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) });
-  page(`<div class="card"><div class="prof"><div class="avatar">${me.ph ? pPhoto(me, 84, "0") : esc(monoTxt(me.n))}</div>
+  page(`<div class="card ${pcls}"><div class="prof">${pav}
       <div><h1>${esc(d.n)}</h1><div class="sub"><span class="role">${RL[mainRole(d.rows)]}</span>${tLink(last.tm, last.tn, 20)}<span class="pill">${esc(S.tours[last.t]?.lg || "")}</span><span class="faint">${d.rows.filter((r) => inSeason(r.t)).length} games · ${esc(seasonName())}</span></div>
       <div class="sub" style="margin-top:10px">${favBtn({ h: "#/player/" + id, n: d.n, k: `Player · ${last.tn}`, img: pPhoto(me, 26) })}<a class="star" href="#/compare?ids=${id}">⇄ Compare</a></div></div>
       <div class="kpis">${donut(a.wr)}<div class="kpi"><b>${a.w}W ${a.g - a.w}L</b><span>${esc(tsel ? S.tours[tsel].n : scopeName())}</span></div>
