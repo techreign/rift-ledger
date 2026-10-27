@@ -66,3 +66,7 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Ads: ADSENSE / AD_SLOT in build.py (env or constant) → meta tags, AdSense script, ads.txt; app placeAd() one unit
   per page. /privacy page + footer link. Waiting on: domain → AdSense application → ids. Then Search Console + sitemap.
 - gol.gg permission: user confirmed 2026-10-26 they have it.
+- Search Console: URL-prefix property https://techreign.github.io/rift-ledger/ verified 2026-10-26 (HTML meta tag in
+  app.html; keep it), sitemap.xml submitted. After the domain move: add a Domain property (DNS TXT) + Change of Address.
+- Domain prices seen 2026-10-26: prostats.gg CA$68.98/yr Namecheap, US$51.80 Porkbun. Cheaper free names: prostats.dev,
+  prostats.io, prostats.lol, prostatsgg.com. User not signed in to either registrar; purchase is theirs.
