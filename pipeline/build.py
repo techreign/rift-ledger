@@ -12,7 +12,7 @@ Outputs (all fetched lazily by the app):
                           (their g/ shards sit with the rest); only fetched when a viewer picks a past season
 """
 import gzip, json, os, re, shutil, sys, time, unicodedata, urllib.request
-import seo
+import seo, vods
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -390,7 +390,7 @@ def main():
         tours.append(dict(s=s, n=doc["name"], lg=league_of(doc["name"]), rg=doc.get("region"), g=len(gs), a=gs[0]["date"], b=gs[-1]["date"]))
         for g in gs: g["t"] = s; games.append(g)
     games.sort(key=lambda g: (g["date"] or "", g["id"]), reverse=True)
-    print(f"{len(games)} games in {len(tours)} tournaments")
+    print(f"{len(games)} games in {len(tours)} tournaments, {vods.attach(games)} with broadcast VODs")
 
     if OUT.exists(): shutil.rmtree(OUT)
     for d in ("p", "t", "c", "g", "x"): (OUT / d).mkdir(parents=True)
@@ -444,6 +444,7 @@ def main():
                 gd15=st.get("gd15"), csd15=st.get("csd15"), it=p["it"], ks=p["ks"], sub=p["sub"], sp=p["sp"], tm=t["id"], tn=t["name"],
                 op=opp["id"], on=opp["name"], oc=lane["ci"] if lane else None, lvl=st.get("lvl"),
                 opp=lane["pid"] if lane else None, mt=[q["pid"] for q in mates], x=g["x"])
+            if g.get("vod"): row["vod"] = g["vod"]
             hist[p["pid"]].append(dict(row, ln=ln, **tags(p)))
             champ_t[p["ci"]][g["t"]][0] += 1; champ_t[p["ci"]][g["t"]][1] += int(t["win"])
             crow = dict(row, p=p["pid"], pn=p["n"], al=[q["ci"] for q in mates])

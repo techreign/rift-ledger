@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-26 (2016-19 added, domain prep)
+Last updated: 2026-10-26 (op.gg parity, VODs, Players merge)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -15,7 +15,7 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - `pipeline/build.py`: → dist/data: index.json (players by[t] has 14 stats; team `lo` logos + player `ph` photos
   hotlinked from lolesports getTeams), p/ t/ c/ g/ shards, x/<gid>.json extras, meta.json (tier list cube:
   champ × tournament × patch × role). Data fetches are cache-busted with index `v`.
-- `src/app.html` routes: #/ (op.gg-style landing), #/champions (tier list, role + patch), #/players, #/leaderboard,
+- `src/app.html` routes: #/ (op.gg-style landing), #/champions (tier list, role + patch), #/players (merged with the old #/leaderboard, which still routes there),
   #/teams, #/tournaments, #/compare (multi-search), #/player/<id>, #/team/<id>, #/champion/<DDid>, #/game/<t>/<gid>
   (Overview / Gold & timeline / Builds tabs), #/t/<slug>, #/h2h/team/<a>/<b>, #/h2h/player/<a>/<b>.
   Recent searches + favourites in localStorage (rl.recent / rl.fav).
@@ -70,3 +70,20 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
   app.html; keep it), sitemap.xml submitted. After the domain move: add a Domain property (DNS TXT) + Change of Address.
 - Domain prices seen 2026-10-26: prostats.gg CA$68.98/yr Namecheap, US$51.80 Porkbun. Cheaper free names: prostats.dev,
   prostats.io, prostats.lol, prostatsgg.com. User not signed in to either registrar; purchase is theirs.
+
+## 2026-10-26 (night): op.gg parity
+- Match rows: both lineups, tags (MVP/ACE/rank, multikill, first blood, solo kills), Score 0-10 (score_game in
+  build.py), detail dropdown (Overview / Score / Team analysis / Build). Recent-games summary box, calmer palette,
+  league logos (lolesports getLeagues + LEAGUE_ALIAS), redesigned tournaments list + tournament page, seasons list.
+- Per-year past-season files (h/by/<year>.json.gz) so a season loads in ~0.1 s. op.gg-style ad layout (top banner,
+  sidebar 300x250, 160x600 rails >=1560px; ?adpreview shows placeholders).
+- Players + Leaderboards merged into one Players page: role chips, Major/All leagues, min games, "Rank by" any stat,
+  podium, every stat column sortable.
+- VODs: pipeline/vods.py (lolesports getSchedule + getEventDetails, en-US YouTube first) -> data/vods.json; vods.attach()
+  matches gol games by day +/-1, team name/code/prefix and "game N" in the title -> row/game `vod` = [ytid, sec].
+  VOD button in match rows, "Watch the broadcast" on game pages. Workflow runs it 8 min per refresh. LPL and many
+  regional leagues have no YouTube VOD on lolesports.
+- op.gg check: esports.op.gg has schedules, standings, team stats, POG rankings, pro builds, predictions, fan comments
+  -- no pro player match histories or career pages. That's our gap to own.
+- Ideas not built: community/posting pages need a backend (Giscus on GitHub Discussions is the cheap option);
+  other games' pro scenes (Valorant has VLR.gg; TFT pro data is thin).

@@ -34,6 +34,10 @@ jobs:
         continue-on-error: true
         working-directory: pipeline
         run: python extras.py --minutes 40
+      - name: Official broadcast VODs (lolesports), time-boxed
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: python pipeline/vods.py --minutes 8
       - name: Commit new games
         if: github.event_name != 'push'
         run: |

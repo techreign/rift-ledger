@@ -248,6 +248,9 @@ body.home header .search { visibility: hidden; }
 .mh .vs div { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
 .mh .vs .tn { overflow: hidden; text-overflow: ellipsis; }
 .xbtn { width: 28px; height: 100%; min-height: 60px; border: 0; border-radius: 6px; background: rgba(255,255,255,.04); cursor: pointer; color: var(--dim); }
+.vod { display: inline-flex; align-items: center; gap: 4px; width: fit-content; margin-top: 2px; padding: 1px 7px 1px 5px; border-radius: 4px; background: #3a2226; color: #ff8a95; font-size: 11px; font-weight: 700; text-decoration: none; }
+.vod:hover { background: #4d2a30; color: #ffb3ba; }
+.tabs .vod { padding: 5px 12px 5px 10px; font-size: 12.5px; margin: 0; }
 .xbtn:hover { background: rgba(255,255,255,.1); color: var(--text); }
 .dtabs { margin: 10px 12px 0; flex-wrap: wrap; } .dtabs .pill { margin-left: auto; }
 .sct { display: grid; gap: 5px; padding: 12px 14px; } .sct > div { display: grid; grid-template-columns: 46px 26px minmax(0, 150px) 34px minmax(0, 1fr) 30px; align-items: center; gap: 8px; font-size: 12.5px; padding: 3px 6px; border-radius: 6px; }
@@ -662,6 +665,9 @@ function rowTags(r) {
   if (r.so) t.push(`<span class="tag so">${r.so > 1 ? r.so + " solo kills" : "Solo kill"}</span>`);
   return t.length ? `<div class="tags">${t.join("")}</div>` : "";
 }
+// official broadcast on YouTube, cued to the game
+const vodUrl = (v) => `https://www.youtube.com/watch?v=${encodeURIComponent(v[0])}${v[1] > 1 ? "&t=" + v[1] + "s" : ""}`;
+const vodLink = (v, txt = "VOD") => `<a class="vod" href="${vodUrl(v)}" target="_blank" rel="noopener" title="Watch the official broadcast of this game"><svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg>${txt}</a>`;
 // ---------------- match history row (shared by player + champion pages)
 function mhRow(r, opts = {}) {
   const it = r.it || [], items = it.filter((i) => !TRINKETS.has(i)), trinket = it.find((i) => TRINKETS.has(i));
@@ -669,7 +675,7 @@ function mhRow(r, opts = {}) {
   const ratio = kdaR(r.k || 0, r.d || 0, r.a || 0), m = r.len / 60;
   const who = opts.showPlayer ? `<div><a class="tn" href="${link("player/" + r.p)}"><b>${esc(r.pn)}</b></a><span class="faint">· ${esc(r.tn)}</span></div>` : `<div><span class="role">${RL[r.r] || ""}</span>${tLink(r.tm, r.tn)}</div>`;
   return `<div class="mh ${r.w ? "w" : "l"}" data-t="${r.t}" data-g="${r.g}" data-p="${r.p ?? ""}">
-    <div class="meta"><span class="res">${r.w ? "Victory" : "Defeat"}</span><span class="tr" title="${esc(S.tours[r.t]?.n)}">${esc(S.tours[r.t]?.lg || "")}</span><span>${ago(r.dt)}</span><span>${mmss(r.len)} · ${esc(r.pa || "")}</span></div>
+    <div class="meta"><span class="res">${r.w ? "Victory" : "Defeat"}</span><span class="tr" title="${esc(S.tours[r.t]?.n)}">${esc(S.tours[r.t]?.lg || "")}</span><span>${ago(r.dt)}</span><span>${mmss(r.len)} · ${esc(r.pa || "")}</span>${r.vod ? vodLink(r.vod) : ""}</div>
     <div class="champ"><span class="pt">${champImg(r.c, 48)}${r.lvl ? `<i>${r.lvl}</i>` : ""}</span><div class="col">${(r.sp || []).map((s) => spellImg(s)).join("")}</div><div class="col">${runeImg(r.ks, 24, "background:#000;border-radius:50%")}${runeImg(r.sub, 18, "margin:2px")}</div></div>
     <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.sc != null ? `<span>Score ${f1(r.sc)}</span>` : ""}</div>
     <div class="st"><span>CS ${r.cs} (${f1(r.cs / m)})</span><span>KP ${r.kp != null ? Math.round(r.kp) + "%" : "–"}</span><span>DMG ${kfmt(r.dmg)}</span><span>GD@15 <b class="${r.gd15 > 0 ? "good" : r.gd15 < 0 ? "bad" : ""}">${r.gd15 > 0 ? "+" : ""}${r.gd15 ?? "–"}</b></span></div>
@@ -1276,7 +1282,7 @@ async function gamePage(t, gid) {
       <div>${tLogo(a.id, 56)}<h1 class="${a.win ? "" : "faint"}">${tLink(a.id, a.name)}</h1><div class="muted">${a.win ? "Victory" : "Defeat"} · blue</div></div>
       <div><div style="font-size:34px;font-weight:800">${a.k} – ${b.k}</div><div class="muted">${mmss(g.len)} · patch ${esc(g.patch)}</div></div>
       <div>${tLogo(b.id, 56)}<h1 class="${b.win ? "" : "faint"}">${tLink(b.id, b.name)}</h1><div class="muted">${b.win ? "Victory" : "Defeat"} · red</div></div></div>
-      <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a>${g.stage ? `<span class="pill">${esc(g.stage)}</span>` : ""}<span class="pill">${esc(g.date)}</span>${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
+      <div class="tabs" style="justify-content:center"><a class="pill" href="#/t/${t}">${esc(S.tours[t]?.n || t)}</a>${g.stage ? `<span class="pill">${esc(g.stage)}</span>` : ""}<span class="pill">${esc(g.date)}</span>${g.vod ? vodLink(g.vod, "Watch the broadcast") : ""}${g.fmt ? `<span class="pill">${esc(g.fmt)}</span>` : ""}
       ${series.length > 1 ? series.map((x, i) => `<a class="chip ${x.id == gid ? "on" : ""}" href="${gLink(t, x.id)}">Game ${i + 1}</a>`).join("") : ""}</div></div>
     ${!g.x && isOldT(t) ? `<p class="faint" style="margin:12px 2px 0;font-size:12.5px">Gold graphs, timelines and builds are only tracked from 2026; earlier games come from Oracle's Elixir, which doesn't include them.</p>` : ""}
     ${g.x ? `<div class="seg" id="gtabs" style="margin-top:16px"><button data-t="ov" class="on">Overview</button><button data-t="tl">Gold & timeline</button><button data-t="bd">Builds</button></div>` : ""}
