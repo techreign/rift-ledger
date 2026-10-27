@@ -58,6 +58,31 @@ def ddragon():
                 items={int(i): it["name"] for i, it in items.items()}, big=sorted(set(big + boots)), boots=sorted(boots), runes=rmap)
 
 LOL_KEY = "0TvQnueqKa5mxJntVWt0w4LpLfEkrV1Ta8rQBb9Z"  # public key the lolesports.com site itself ships
+# our league names (gol.gg / Oracle spellings) -> lolesports league name, where they differ
+LEAGUE_ALIAS = {"EBL": "Esports Balkan League", "LIT": "LoL Italian Tournament", "HLL": "Hellenic Legends League", "LCK CL": "LCK Challengers",
+    "LCK Cup": "LCK", "Prime League 1st Div": "Prime League", "LPLOL": "Liga Portuguesa", "CD": "Circuito Desafiante", "EWC": "Esports World Cup",
+    "Demacia Cup Global Invitational": "DCGI", "Demacia Cup": "DCGI", "World Star Challengers Invitational": "WSCI", "CBLOL Cup": "CBLOL",
+    "Kespa Cup 2025": "KeSPA Cup", "TransIP Road Of Legends": "Road of Legends", "Road Of Legends": "Road of Legends", "Hitpoint Winter": "Hitpoint Masters",
+    "EU LCS": "LEC", "NA LCS": "LCS", "LTA": "LTA Cross-Conference", "NA Challengers": "NACL", "EU Masters": "EMEA Masters", "CBLOL Academy": "CBLOL",
+    "Americas Challengers": "LTA Cross-Conference", "IC": "LES", "LVP SL": "LES", "SL": "LES", "LFL Division 2": "La Ligue Française", "LFL": "La Ligue Française"}
+
+def league_logos(names):
+    """{league name: logo url} from lolesports getLeagues (cached a week); leagues it doesn't know keep text badges"""
+    p = CACHE / "lol_leagues.json"
+    if not p.exists() or time.time() - p.stat().st_mtime > 7 * 86400:
+        try:
+            req = urllib.request.Request("https://esports-api.lolesports.com/persisted/gw/getLeagues?hl=en-US", headers={"x-api-key": LOL_KEY, "User-Agent": "RiftLedger/0.1"})
+            p.write_bytes(urllib.request.urlopen(req, timeout=60).read())
+        except Exception as e:
+            print("lolesports leagues fetch failed:", e, file=sys.stderr)
+            if not p.exists(): return {}
+    by = {l["name"].strip().lower(): l["image"].replace("http://", "https://") for l in json.loads(p.read_text(encoding="utf-8"))["data"]["leagues"] if l.get("image")}
+    out = {}
+    for n in names:
+        u = by.get(n.lower()) or by.get(LEAGUE_ALIAS.get(n, "").lower())
+        if u: out[n] = u
+    return out
+
 def lolesports():
     """Team logos + player photos from the lolesports API (hotlinked, not downloaded). Cached for a week."""
     p = CACHE / "lol_teams.json"
@@ -455,7 +480,12 @@ def main():
         if p["id"] in yrs: p["yrs"] = yrs[p["id"]]
     for t in teams:
         if t["id"] in tyrs: t["yrs"] = tyrs[t["id"]]
-    index = dict(built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
+    lnames = {t["lg"] for t in tours}
+    hidx = OUT / "h" / "index.json.gz"
+    if hidx.exists(): lnames |= {t["lg"] for t in json.loads(gzip.decompress(hidx.read_bytes()))["tours"]}
+    lglo = league_logos(sorted(lnames))
+    print(f"league logos: {len(lglo)}/{len(lnames)}")
+    index = dict(lglo=lglo, built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
         tours=sorted(tours, key=lambda t: t["b"] or "", reverse=True), players=sorted(players, key=lambda p: -p["g"]),
         teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))

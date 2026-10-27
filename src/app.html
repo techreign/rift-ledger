@@ -60,6 +60,15 @@ nav.main a.on, nav.main a:hover { color: var(--text); background: var(--panel2);
 .cpool .cp:first-child { border-top: 0; } .cpool .cp:hover { background: var(--panel2); color: var(--text); }
 .cp div { display: grid; gap: 1px; min-width: 0; } .cp .c2, .cp .c3 { text-align: right; }
 .cp b { font-size: 13px; font-weight: 700; } .cp .c1 b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .cp small { font-size: 11.5px; white-space: nowrap; }
+.sea-l { display: grid; padding: 6px 8px 10px; font-size: 12.5px; }
+.sea-h, .sea-r { display: grid; grid-template-columns: 34px minmax(0, 1fr) 86px 32px 30px; gap: 7px; align-items: center; padding: 6px 7px; }
+.sea-r .swr > span:first-child { display: flex; justify-content: space-between; gap: 4px; } .sea-r .swr small { color: var(--faint); font-size: 11px; }
+.sea-h { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; } .sea-h span:nth-child(n+3) { text-align: right; }
+.sea-r { border-radius: 7px; color: var(--text); } .sea-r:hover { background: var(--panel2); color: var(--text); }
+.sea-r.on { background: rgba(201,174,120,.13); box-shadow: inset 3px 0 0 var(--gold); }
+.sea-r .sy { color: var(--gold2); } .sea-r .stm { display: flex; align-items: center; gap: 6px; min-width: 0; } .sea-r .stm span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+.sea-r .stm img { flex: none; object-fit: contain; } .sea-r .skda, .sea-r .sg { text-align: right; } .sea-r .sg { color: var(--faint); }
+.sea-r .swr { display: grid; gap: 3px; }
 .seas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
 .seat { display: grid; gap: 5px; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); color: var(--text); min-width: 0; }
 .seat:hover { border-color: #4a5263; color: var(--text); }
@@ -80,6 +89,23 @@ main { padding: 22px 0 60px; min-height: 70vh; }
 .sec-h .sp { margin-left: auto; text-transform: none; letter-spacing: 0; }
 .grid2 { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 16px; align-items: start; }
 .grid2b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.lgl { object-fit: contain; flex: none; } .lgt { display: inline-grid; place-items: center; flex: none; border-radius: 8px; background: var(--panel2); color: var(--gold2); font-weight: 800; letter-spacing: .02em; }
+/* tournaments list */
+.tfeat { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.tfeat a { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border-radius: var(--r); background: var(--panel); border: 1px solid var(--line); }
+.tfeat a:hover { border-color: #4a5263; color: inherit; } .tfeat b { display: block; font-size: 13.5px; } .tfeat small { color: var(--dim); font-size: 12px; }
+.live { display: inline-block; font-size: 10px; font-weight: 800; color: #fff; background: #c94c5c; border-radius: 4px; padding: 0 5px; margin-left: 6px; vertical-align: 1px; }
+.tlg h3 { display: flex; align-items: center; gap: 10px; } .tlg h3 .sp { margin-left: auto; }
+.tlist a { display: grid; grid-template-columns: minmax(0, 1fr) auto 70px; gap: 10px; align-items: center; padding: 9px 16px; border-top: 1px solid #262a33; font-size: 13px; }
+.tlist a:hover { background: var(--panel2); color: inherit; } .tlist small { color: var(--faint); } .tlist .n { text-align: right; color: var(--dim); }
+.tfil { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; } .tfil input { height: 34px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); padding: 0 12px; min-width: 220px; outline: none; }
+/* tournament page: series list */
+.ttabs { margin: 16px 0 0; } .day { padding: 8px 16px; font-size: 11.5px; font-weight: 700; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; background: #1b1e25; }
+.ser { border-top: 1px solid #262a33; } .ser > button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr) 24px; align-items: center; gap: 12px; padding: 11px 16px; }
+.ser > button:hover { background: var(--panel2); } .ser .tside { display: flex; align-items: center; gap: 9px; min-width: 0; font-weight: 700; } .ser .tside.r { flex-direction: row-reverse; text-align: right; }
+.ser .tside span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ser .tside.lose { color: var(--dim); font-weight: 600; }
+.ser .score { text-align: center; font-size: 18px; font-weight: 800; letter-spacing: .04em; } .ser .score small { display: block; font-size: 10.5px; color: var(--faint); font-weight: 600; letter-spacing: 0; }
+.ser .gl { background: #1b1e25; } .ser .car { color: var(--faint); text-align: center; }
 .stack { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
 .adbox { padding: 8px 10px 10px; min-height: 120px; } .adbox > span { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
 #app > .adbox { margin-top: 16px; }
@@ -180,6 +206,7 @@ body.home header .search { visibility: hidden; }
 .rkb { display: flex; align-items: center; gap: 14px; padding: 14px 16px; }
 .emb { width: 54px; height: 54px; flex: none; display: grid; place-items: center; border-radius: 50%; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--gold2);
   background: radial-gradient(circle at 50% 35%, #3a3222, #15130e 70%); border: 2px solid var(--gold); box-shadow: 0 0 18px rgba(200,170,110,.18); text-align: center; line-height: 1.1; padding: 4px; overflow: hidden; }
+.emb.lg { background: #1b1e25; box-shadow: none; } .emb.lg .lgt { background: none; }
 .emb.sea { border-color: var(--blue); color: #cfe0ff; background: radial-gradient(circle at 50% 35%, #22304a, #0f141d 70%); box-shadow: 0 0 18px rgba(79,141,245,.18); }
 .rkb .t { min-width: 0; flex: 1; } .rkb .t b { display: block; font-size: 14px; line-height: 1.25; }
 .rkb .t div { font-size: 12.5px; }
@@ -557,18 +584,21 @@ function seasonPick(base, ys) {
   return `<select class="fsel sesel" aria-label="Season">${ys.map((x) => opt(x.y === CUR ? "" : x.y, "Season " + x.y)).join("")}${opt("all", "All time")}</select>`;
 }
 document.addEventListener("change", (e) => { if (e.target.matches(".sesel")) location.hash = e.target.value; });
+// past seasons as one row each (season, team, record, win-rate bar, KDA, games); the row you're viewing is highlighted
 function seasonCard(base, ys) {
   if (ys.length < 2) return "";
   const cur = S.season === "all" ? "all" : +S.season || CUR;
   const href = (y) => base + (y === CUR ? "" : "?y=" + y);
-  const tot = ys.reduce((s, x) => ({ g: s.g + x.g, w: s.w + x.w }), { g: 0, w: 0 }), twr = pct(tot.w, tot.g);
-  const rec = (g, w) => { const wr = pct(w, g); return `<div class="sr"><span>${w}W ${g - w}L</span><b class="${wrCls(wr)}">${wr}%</b></div><div class="wbar"><i style="width:${wr}%"></i></div>`; };
-  const tile = (x) => { const kda = x.k != null ? kdaR(x.k, x.d, x.a) : null;
-    return `<a class="seat ${x.y === cur ? "on" : ""}" href="${href(x.y)}"><div class="sy"><b>S${x.y}</b>${x.lo ? `<img src="${esc(x.lo)}" width="18" height="18" alt="" loading="lazy" onerror="this.remove()">` : ""}<span class="faint">${esc(x.tn || "")}</span></div>
-      ${rec(x.g, x.w)}<small class="faint"><span>${kda != null ? `KDA <b class="${kdaCls(kda)}">${f2(kda)}</b>` : ""}</span><span>${x.g} G</span></small></a>`; };
-  return `<div class="card"><h3>Past seasons <span class="sp faint">${ys.length} seasons</span></h3><div class="seas">
-    <a class="seat all ${cur === "all" ? "on" : ""}" href="${base}?y=all"><div class="sy"><b>All time</b><span class="faint">${ys.at(-1).y}–${ys[0].y} · ${tot.g.toLocaleString()} games</span></div>${rec(tot.g, tot.w)}</a>
-    ${ys.map(tile).join("")}</div></div>`;
+  const tot = ys.reduce((s, x) => ({ g: s.g + x.g, w: s.w + x.w }), { g: 0, w: 0 });
+  const row = (on, h, label, team, g, w, kda) => { const wr = pct(w, g);
+    return `<a class="sea-r ${on ? "on" : ""}" href="${h}"><b class="sy">${label}</b><span class="stm">${team}</span>
+      <span class="swr"><span><b class="${wrCls(wr)}">${wr}%</b><small>${w}–${g - w}</small></span><span class="wbar"><i style="width:${wr}%"></i></span></span>
+      <span class="skda">${kda != null ? `<b class="${kdaCls(kda)}">${f2(kda)}</b>` : ""}</span><span class="sg">${g}</span></a>`; };
+  const team = (x) => `${x.lo ? `<img src="${esc(x.lo)}" width="18" height="18" alt="" loading="lazy" onerror="this.remove()">` : ""}<span>${esc(x.tn || "")}</span>`;
+  return `<div class="card"><h3>Seasons <span class="sp faint">click one to load it</span></h3><div class="sea-l">
+    <div class="sea-h"><span></span><span>Team</span><span>Win rate</span><span>KDA</span><span>G</span></div>
+    ${row(cur === "all", base + "?y=all", "All", `<span class="faint">${ys.at(-1).y}–${ys[0].y}</span>`, tot.g, tot.w, null)}
+    ${ys.map((x) => row(x.y === cur, href(x.y), x.y, team(x), x.g, x.w, x.k != null ? kdaR(x.k, x.d, x.a) : null)).join("")}</div></div>`;
 }
 
 // ---------------- generic sortable table
@@ -951,14 +981,26 @@ function teamsPage() {
     { k: "wr", h: "Win %", num: 1, v: (x) => x.wr, f: (x) => `<span class="${wrCls(x.wr)}">${x.wr}%</span>` },
   ], rows, { sort: "g", page: 100 });
 }
+// league logo from lolesports (index lglo), or a text badge for leagues it doesn't cover
+const lgLogo = (lg, sz = 28) => S.idx.lglo?.[lg] ? `<img class="lgl" src="${esc(S.idx.lglo[lg])}" width="${sz}" height="${sz}" alt="${esc(lg)}" title="${esc(lg)}" loading="lazy">` : `<span class="lgt" style="width:${sz}px;height:${sz}px;font-size:${Math.max(8, sz / 3.4)}px">${esc(initials(lg || "?").slice(0, 4))}</span>`;
 const initials = (n) => (n.match(/[A-Z0-9]/g) || [n[0]]).slice(0, 3).join("") || n.slice(0, 2).toUpperCase();
 
 function toursPage() {
-  const lgs = groupBy(seasonTours(), "lg");
+  const all = seasonTours(), today = new Date().toISOString().slice(0, 10);
+  const lgs = groupBy(all, "lg");
   const order = [...lgs].sort((a, b) => b[1].reduce((s, t) => s + t.g, 0) - a[1].reduce((s, t) => s + t.g, 0));
-  page(`<h1 style="margin-bottom:14px">Tournaments <span class="faint" style="font-size:15px;font-weight:600">${esc(seasonName())}</span></h1><div class="grid2b">${order.map(([lg, ts]) => `<div class="card"><h3>${esc(lg)}<span class="sp faint">${ts.reduce((s, t) => s + t.g, 0)} games</span></h3>
-    <div class="scroll"><table class="tbl"><tbody>${ts.map((t) => `<tr><td><a href="#/t/${t.s}"><b>${esc(t.n)}</b></a></td><td class="muted hide-s">${esc(t.a)} → ${esc(t.b)}</td><td class="n">${t.g} games</td></tr>`).join("")}</tbody></table></div></div>`).join("")}</div>`);
+  const recent = [...all].filter((t) => t.b).sort((a, b) => (b.b > a.b ? 1 : -1)).slice(0, 8);
+  const live = (t) => S.season === "" && t.b && (Date.parse(today) - Date.parse(t.b)) / 864e5 <= 3;
+  const dates = (t) => (t.a ? `${fmtD(t.a)} – ${fmtD(t.b)}` : "");
+  page(`<h1 style="margin-bottom:6px">Tournaments <span class="faint" style="font-size:15px;font-weight:600">${esc(seasonName())}</span></h1>
+    <p class="muted" style="margin:0 0 16px">${all.length} tournaments in ${lgs.size} leagues. Open one for its matches, standings, players and champions.</p>
+    <h3 class="sect">Recent & ongoing</h3><div class="tfeat">${recent.map((t) => `<a href="#/t/${t.s}">${lgLogo(t.lg, 40)}<div><b>${esc(t.n)}${live(t) ? `<span class="live">LIVE</span>` : ""}</b><small>${dates(t)} · ${t.g} games</small></div></a>`).join("")}</div>
+    <div class="tfil"><input id="tq" placeholder="Filter leagues and tournaments" aria-label="Filter tournaments"></div>
+    <div class="grid2b" id="tlgs">${order.map(([lg, ts]) => `<div class="card tlg" data-k="${esc((lg + " " + ts.map((t) => t.n).join(" ")).toLowerCase())}"><h3>${lgLogo(lg, 26)}${esc(lg)}<span class="sp faint">${ts.reduce((s, t) => s + t.g, 0)} games</span></h3>
+      <div class="tlist">${[...ts].sort((a, b) => ((b.b || "") > (a.b || "") ? 1 : -1)).map((t) => `<a href="#/t/${t.s}"><span><b>${esc(t.n)}</b>${live(t) ? `<span class="live">LIVE</span>` : ""}</span><small>${dates(t)}</small><span class="n">${t.g} games</span></a>`).join("")}</div></div>`).join("")}</div>`);
+  $("#tq").oninput = (e) => { const q = e.target.value.trim().toLowerCase(); document.querySelectorAll("#tlgs .tlg").forEach((c) => (c.hidden = q && !c.dataset.k.includes(q))); };
 }
+const fmtD = (d) => (d ? new Date(d + "T00:00:00Z").toLocaleDateString("en", { month: "short", day: "numeric", timeZone: "UTC" }) : "");
 
 async function playerPage(id, q) {
   const d = await rowsOf("p", id), me = S.players[id] || {};
@@ -1073,7 +1115,7 @@ function rankCards(id, all, tsel, seas = "", pick = "") {
     <div class="r"><b>${a.w}W ${a.g - a.w}L</b><span class="${wrCls(a.wr)}">Win rate ${a.wr}%</span><div class="faint">KDA ${f2(a.kda)}</div></div></div></div>`;
   const [ct, crs] = tours.find(([t]) => t === tsel) || tours[0], ca = agg(crs), sa = agg(all);
   const teams = [...new Set(all.map((r) => r.tn))];
-  return box("", tag(ct), tsel ? "Selected tournament" : "Current tournament", esc(S.tours[ct].n), tLink(crs[0].tm, crs[0].tn), roleRank(id, role, (p) => p.by[ct]), ca)
+  return box("lg", lgLogo(S.tours[ct]?.lg, 40), tsel ? "Selected tournament" : "Current tournament", esc(S.tours[ct].n), tLink(crs[0].tm, crs[0].tn), roleRank(id, role, (p) => p.by[ct]), ca)
     + (tours.length > 1 || pick ? box("sea", S.season === "all" ? "ALL" : seasonName(), pick ? `Season ${pick}` : `Season <b>${esc(scopeName())}</b>`, `${tours.length} tournaments`, teams.map(esc).join(" → "), roleRank(id, role, (p) => { const s = sumBy(p.by); return s[0] ? s : null; }), sa) : "")
     + seas;
 }
@@ -1283,22 +1325,53 @@ async function tourPage(slug) {
   const ch = new Map(); for (const g of gs) { for (const p of g.players) { const x = ch.get(p.ci) || { c: p.ci, p: 0, w: 0, b: 0 }; x.p++; x.w += g.teams[p.side].win ? 1 : 0; ch.set(p.ci, x); } for (const t of g.teams) for (const c of t.bi) { const x = ch.get(c) || { c, p: 0, w: 0, b: 0 }; x.b++; ch.set(c, x); } }
   const pl = new Map(); for (const g of gs) for (const p of g.players) { const x = pl.get(p.pid) || { id: p.pid, n: p.n, r: p.role, tn: g.teams[p.side].name, rows: [] }; x.rows.push({ w: g.teams[p.side].win ? 1 : 0, k: p.k, d: p.d, a: p.a, cs: p.cs, len: g.len, dmg: p.st?.dmg, kp: p.st?.kp, gold: p.st?.gold, gd15: p.st?.gd15, vs: p.st?.vs }); pl.set(p.pid, x); }
   const players = [...pl.values()].map((x) => ({ ...x, ...agg(x.rows) }));
-  page(`<div class="card"><div class="prof"><div class="avatar">${esc(initials(tr.lg))}</div><div><h1>${esc(tr.n)}</h1><div class="sub"><span class="pill">${esc(tr.lg)}</span><span class="faint">${esc(tr.a)} → ${esc(tr.b)} · ${gs.length} games</span></div></div></div></div>
-    <div class="grid2b" style="margin-top:16px"><div class="card"><h3>Standings <span class="sp faint">game record</span></h3><div id="ts"></div></div><div class="card"><h3>Champions</h3><div id="tc"></div></div></div>
-    <div class="card" style="margin-top:16px"><h3>Players</h3><div id="tpl"></div></div>
-    <div class="card" style="margin-top:16px"><h3>Games</h3><div class="gl" id="tgl"></div></div>`);
-  table($("#ts"), [{ k: "n", h: "Team", v: (x) => x.n, f: (x) => tLink(x.id, x.n, 22) }, { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "w", h: "W–L", num: 1, v: (x) => x.w / x.g, f: (x) => `${x.w}–${x.g - x.w}` },
-    { k: "wr", h: "Win %", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span>` }, { k: "len", h: "Avg length", num: 1, cls: "hide-s", v: (x) => x.len / x.g, f: (x) => mmss(Math.round(x.len / x.g)) }], [...st.values()], { sort: "wr", page: 30 });
+  // series = same two teams on the same day; games inside in order
+  const series = [...groupBy(gs, (g) => g.date + "|" + g.teams.map((t) => t.id).sort().join("-"))].map(([, games]) => {
+    games = [...games].sort((x, y) => (x.gn ?? 0) - (y.gn ?? 0) || String(x.id).localeCompare(String(y.id), undefined, { numeric: true }));
+    const [a, b] = games[0].teams.map((t) => ({ id: t.id, n: t.name, w: 0 }));
+    for (const g of games) (g.teams.find((t) => t.win)?.id === a.id ? a : b).w++;
+    return { date: games[0].date, stage: games[0].stage, a, b, games };
+  });
+  const sst = new Map(); for (const x of series) for (const [m, o] of [[x.a, x.b], [x.b, x.a]]) { const r = sst.get(m.id) || { sw: 0, sl: 0 }; m.w > o.w ? r.sw++ : r.sl++; sst.set(m.id, r); }
+  for (const x of st.values()) Object.assign(x, sst.get(x.id) || { sw: 0, sl: 0 });
+  page(`<div class="card"><div class="prof"><div class="avatar" style="background:#1b1e25">${lgLogo(tr.lg, 64)}</div><div><h1>${esc(tr.n)}</h1>
+      <div class="sub"><a class="pill" href="#/tournaments">${esc(tr.lg)}</a><span class="faint">${fmtD(tr.a)} – ${fmtD(tr.b)} · ${series.length} series · ${gs.length} games</span></div></div>
+      <div class="kpis"><div class="kpi"><b>${st.size}</b><span>teams</span></div><div class="kpi"><b>${pl.size}</b><span>players</span></div><div class="kpi"><b>${ch.size}</b><span>champions</span></div><div class="kpi"><b>${mmss(Math.round(gs.reduce((s, g) => s + g.len, 0) / (gs.length || 1)))}</b><span>avg game</span></div></div></div></div>
+    <div class="seg ttabs" id="ttabs"><button data-k="m" class="on">Matches</button><button data-k="s">Standings</button><button data-k="p">Players</button><button data-k="c">Champions</button></div>
+    <div class="card" style="margin-top:12px" data-p="m"><div id="tser"></div></div>
+    <div class="card" style="margin-top:12px" data-p="s" hidden><h3>Standings <span class="sp faint">series and game record</span></h3><div id="ts"></div></div>
+    <div class="card" style="margin-top:12px" data-p="p" hidden><h3>Players</h3><div id="tpl"></div></div>
+    <div class="card" style="margin-top:12px" data-p="c" hidden><h3>Champions <span class="sp faint">picks, bans and presence</span></h3><div id="tc"></div></div>`);
+  $("#ttabs").onclick = (e) => { const b2 = e.target.closest("button"); if (!b2) return; $("#ttabs").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b2)); document.querySelectorAll("[data-p]").forEach((c) => (c.hidden = c.dataset.p !== b2.dataset.k)); };
+  table($("#ts"), [{ k: "n", h: "Team", v: (x) => x.n, f: (x) => tLink(x.id, x.n, 22) }, { k: "sw", h: "Series", num: 1, v: (x) => x.sw - x.sl / 100, f: (x) => `<b>${x.sw}–${x.sl}</b>` }, { k: "w", h: "Games", num: 1, v: (x) => x.w / x.g, f: (x) => `${x.w}–${x.g - x.w}` },
+    { k: "wr", h: "Win %", num: 1, v: (x) => x.w / x.g, f: (x) => `<span class="${wrCls(pct(x.w, x.g))}">${pct(x.w, x.g)}%</span>` }, { k: "len", h: "Avg length", num: 1, cls: "hide-s", v: (x) => x.len / x.g, f: (x) => mmss(Math.round(x.len / x.g)) }], [...st.values()], { sort: "sw", page: 40 });
   table($("#tc"), [{ k: "c", h: "Champion", v: (x) => cname(x.c), f: (x) => `<a class="who" href="${link("champion/" + x.c)}">${champImg(x.c, 26)}<b>${esc(cname(x.c))}</b></a>` }, { k: "pr", h: "Presence", num: 1, v: (x) => x.p + x.b, f: (x) => pct(x.p + x.b, gs.length) + "%" },
     { k: "p", h: "Picks", num: 1, v: (x) => x.p, f: (x) => x.p }, { k: "b", h: "Bans", num: 1, v: (x) => x.b, f: (x) => x.b }, { k: "wr", h: "Win", num: 1, v: (x) => (x.p ? x.w / x.p : -1), f: (x) => (x.p ? pct(x.w, x.p) + "%" : "–") }], [...ch.values()], { sort: "pr", page: 15 });
   table($("#tpl"), [{ k: "n", h: "Player", v: (x) => x.n.toLowerCase(), f: (x) => `<div>${pLink(x.id, x.n)} <span class="faint">${esc(x.tn)}</span></div>` }, { k: "r", h: "Role", v: (x) => ROLES.indexOf(x.r), f: (x) => `<span class="role">${RL[x.r]}</span>` },
     { k: "g", h: "Games", num: 1, v: (x) => x.g, f: (x) => x.g }, { k: "wr", h: "Win", num: 1, v: (x) => x.wr, f: (x) => x.wr + "%" }, { k: "kda", h: "KDA", num: 1, v: (x) => x.kda, f: (x) => `<b class="${kdaCls(x.kda)}">${f2(x.kda)}</b>` },
     { k: "csm", h: "CS/m", num: 1, cls: "hide-s", v: (x) => x.csm, f: (x) => f1(x.csm) }, { k: "dpm", h: "DPM", num: 1, cls: "hide-s", v: (x) => x.dpm, f: (x) => Math.round(x.dpm) }, { k: "kpa", h: "KP", num: 1, cls: "hide-s", v: (x) => x.kpa || 0, f: (x) => (Number.isFinite(x.kpa) ? Math.round(x.kpa) + "%" : "–") },
     { k: "gd15", h: "GD@15", num: 1, cls: "hide-s", v: (x) => x.gd15 || 0, f: (x) => (Number.isFinite(x.gd15) ? Math.round(x.gd15) : "–") }], players, { sort: "g", page: 25 });
-  let n = 30;
-  const lines = gs.map((g) => ({ g: g.id, t: slug, dt: g.date, len: g.len, st: g.stage, tm: g.teams.map((t, i) => [t.id, t.name, t.win ? 1 : 0, t.k, g.players.filter((p) => p.side === i).map((p) => p.ci)]) }));
-  const draw = () => { $("#tgl").innerHTML = lines.slice(0, n).map(gameLine).join("") + (lines.length > n ? `<button class="more">Show more (${lines.length - n} left)</button>` : ""); const m = $("#tgl .more"); if (m) m.onclick = () => { n += 50; draw(); }; };
-  draw();
+  // matches tab: newest day first, one line per series, click to see its games
+  let n = 25;
+  const days = [...groupBy(series, "date")];
+  const serLine = (x, i) => { const aw = x.a.w > x.b.w;
+    return `<div class="ser"><button data-i="${i}"><span class="tside ${aw ? "" : "lose"}">${tLogo(x.a.id, 26)}<span>${esc(x.a.n)}</span></span>
+      <span class="score">${x.a.w} – ${x.b.w}<small>${"Bo" + (2 * Math.max(x.a.w, x.b.w) - 1)}${x.stage ? " · " + esc(x.stage) : ""}</small></span>
+      <span class="tside r ${aw ? "lose" : ""}">${tLogo(x.b.id, 26)}<span>${esc(x.b.n)}</span></span><span class="car">▾</span></button></div>`; };
+  const drawS = () => {
+    let i = 0, html = "";
+    for (const [d, xs] of days) { if (i >= n) break; html += `<div class="day">${new Date(d + "T00:00:00Z").toLocaleDateString("en", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" })}</div>`; for (const x of xs) html += serLine(x, series.indexOf(x)), i++; }
+    $("#tser").innerHTML = html + (series.length > n ? `<button class="more">Show more (${series.length - n} series left)</button>` : "");
+    const m = $("#tser .more"); if (m) m.onclick = () => { n += 40; drawS(); };
+  };
+  $("#tser").onclick = (e) => {
+    const b2 = e.target.closest(".ser > button"); if (!b2) return;
+    const box = b2.parentElement, open = $(".gl", box); if (open) { open.remove(); $(".car", b2).textContent = "▾"; return; }
+    const x = series[+b2.dataset.i];
+    box.insertAdjacentHTML("beforeend", `<div class="gl">${x.games.map((g) => gameLine({ g: g.id, t: slug, dt: g.date, len: g.len, st: g.stage, tm: g.teams.map((t, k) => [t.id, t.name, t.win ? 1 : 0, t.k, g.players.filter((p) => p.side === k).map((p) => p.ci)]) })).join("")}</div>`);
+    $(".car", b2).textContent = "▴";
+  };
+  drawS();
 }
 
 // ---------------- search
