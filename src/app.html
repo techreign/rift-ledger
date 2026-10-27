@@ -54,6 +54,8 @@ nav.main a.on, nav.main a:hover { color: var(--text); background: var(--panel2);
 .search.hs button:hover { filter: brightness(1.1); }
 .nav2 { display: flex; align-items: center; height: 40px; }
 .nav2 nav.main a { padding: 6px 12px; }
+.games { display: flex; gap: 2px; margin-right: 14px; padding-right: 14px; border-right: 1px solid var(--line); }
+.games a.on { color: var(--gold2) !important; background: none !important; }
 /* player page tabs (op.gg Summary / Champions / ...) */
 .ptabs { display: flex; gap: 4px; margin-top: 14px; padding: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow-x: auto; scrollbar-width: none; }
 .ptabs a { padding: 8px 16px; border-radius: 7px; color: var(--dim); font-weight: 600; white-space: nowrap; }
@@ -476,6 +478,7 @@ footer p { margin: 4px 0; }
   <select class="scope season" id="season" aria-label="Season"></select>
   <select class="scope" id="scope" aria-label="League or tournament filter"></select>
 </div><div class="wrap nav2"><nav class="main">
+    <span class="games"><a class="on" href="#/">League of Legends</a><a href="dota/">Dota 2</a></span>
     <a href="#/" data-r="">Home</a><a href="#/champions" data-r="champions">Tier list</a><a href="#/players" data-r="players">Players</a>
     <a href="#/teams" data-r="teams">Teams</a><a href="#/tournaments" data-r="tournaments">Tournaments</a><a href="#/compare" data-r="compare">Multi-search</a>
   </nav></div></header>
@@ -1690,7 +1693,7 @@ function notFound(kind) {
     const a = e.target.closest("a[href]");
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target || a.hasAttribute("download")) return;
     const u = new URL(a.href, location.href);
-    if (u.origin !== location.origin || !u.pathname.startsWith(BASE) || /\.[a-z0-9]+$/i.test(u.pathname) || (u.hash && u.pathname === location.pathname)) return;
+    if (u.origin !== location.origin || !u.pathname.startsWith(BASE) || u.pathname.startsWith(BASE + "dota/") || /\.[a-z0-9]+$/i.test(u.pathname) || (u.hash && u.pathname === location.pathname)) return;
     e.preventDefault(); if (u.href !== location.href) history.pushState(null, "", u.href); route();
   });
   // code that still sets location.hash = "#/..." lands here; swap the hash for the path in place
