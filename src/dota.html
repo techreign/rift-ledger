@@ -53,11 +53,10 @@
 .lgc a:hover { border-color: var(--gold); color: var(--text); }
 .tier { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; background: #3b3120; color: var(--gold2); width: fit-content; }
 .tier.professional { background: #24324a; color: #a9c3f5; }
-.games { display: flex; gap: 2px; margin-right: 14px; padding-right: 14px; border-right: 1px solid var(--line); }
 </style>
 </head>
 <body>
-<header><div class="wrap bar">
+<header><div class="gbar"><div class="wrap"><a href="../">League of Legends</a><a class="on" href="#/">Dota 2</a></div></div><div class="wrap bar">
   <a class="logo" href="#/"><i></i><span>PROSTATS.GG</span></a>
   <div class="search hs">
     <select id="qlg" aria-label="Search in league"><option value="">All</option></select>
@@ -66,7 +65,6 @@
     <div class="sugg" id="sugg" hidden></div>
   </div>
 </div><div class="wrap nav2"><nav class="main">
-    <span class="games"><a href="../">League of Legends</a><a class="on" href="#/">Dota 2</a></span>
     <a href="#/heroes" data-r="heroes">Heroes</a><a href="#/players" data-r="players">Players</a>
     <a href="#/teams" data-r="teams">Teams</a><a href="#/leagues" data-r="leagues">Tournaments</a>
   </nav></div></header>
