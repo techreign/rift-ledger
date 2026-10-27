@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pros.gg</title>
+<title>prostats.gg</title>
 <meta name="description" content="Every 2026 pro League of Legends game: player match histories, champion pools, builds, team records and tournament stats.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#0e1015">
-<!-- link previews (Discord, X, iMessage...). Hash routes can't have per-page tags, so every link shares these. -->
+<!-- link previews (Discord, X, iMessage...) and search. pipeline/seo.py rewrites these per page for the static
+     player/team/champion/tournament pages; everything else shares them. -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="pros.gg">
-<meta property="og:title" content="pros.gg · every pro League of Legends game of 2026">
+<meta property="og:site_name" content="prostats.gg">
+<meta property="og:title" content="prostats.gg · every pro League of Legends game of 2026">
 <meta property="og:description" content="op.gg for pro play: match histories, champion builds, tier list, leaderboards and head-to-heads for every 2026 pro game.">
 <link rel="canonical" href="https://techreign.github.io/rift-ledger/">
 <meta property="og:url" content="https://techreign.github.io/rift-ledger/">
@@ -78,6 +79,9 @@ main { padding: 22px 0 60px; min-height: 70vh; }
 .grid2 { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 16px; align-items: start; }
 .grid2b { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .stack { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.adbox { padding: 8px 10px 10px; min-height: 120px; } .adbox > span { display: block; font-size: 10.5px; color: var(--faint); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .06em; }
+#app > .adbox { margin-top: 16px; }
+.legal { max-width: 760px; line-height: 1.6; } .legal h2 { font-size: 16px; margin: 22px 0 6px; }
 .card { min-width: 0; }
 h1 { margin: 0; font-size: 26px; }
 .muted { color: var(--dim); } .faint { color: var(--faint); }
@@ -350,7 +354,7 @@ footer p { margin: 4px 0; }
 </head>
 <body>
 <header><div class="wrap bar">
-  <a class="logo" href="#/"><i></i><span>PROS.GG</span></a>
+  <a class="logo" href="#/"><i></i><span>PROSTATS.GG</span></a>
   <nav class="main">
     <a href="#/champions" data-r="champions">Tier list</a><a href="#/players" data-r="players">Players</a><a href="#/leaderboard" data-r="leaderboard">Leaderboards</a>
     <a href="#/teams" data-r="teams">Teams</a><a href="#/tournaments" data-r="tournaments">Tournaments</a><a href="#/compare" data-r="compare">Multi-search</a>
@@ -365,8 +369,9 @@ footer p { margin: 4px 0; }
 </div></header>
 <main><div class="wrap" id="app"><div class="loading">Loading every pro game of 2026…</div></div></main>
 <footer><div class="wrap">
-  <p>pros.gg is a free fan project. 2026 game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; earlier seasons from <a href="https://oracleselixir.com" target="_blank" rel="noopener">Oracle's Elixir</a>; images from Riot's Data Dragon.</p>
-  <p>pros.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+  <p>prostats.gg is a free fan project. 2026 game data from <a href="https://gol.gg" target="_blank" rel="noopener">Games of Legends (gol.gg)</a>; earlier seasons from <a href="https://oracleselixir.com" target="_blank" rel="noopener">Oracle's Elixir</a>; images from Riot's Data Dragon.</p>
+  <p>prostats.gg isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.</p>
+  <p><a href="#/privacy">Privacy</a> · <a href="https://github.com/techreign/rift-ledger/issues" target="_blank" rel="noopener">Contact</a></p>
   <p id="built"></p>
 </div></footer>
 <script>
@@ -383,6 +388,13 @@ const J = (path) => {
     .catch((e) => { if (!/ 404$/.test(e.message)) S.cache.delete(path); throw e; }));  // network errors can be retried
   return S.cache.get(path);
 };
+// the site's root path (<base href> from build.py: "/rift-ledger/" on github.io, "/" on a custom domain)
+const BASE = new URL(document.baseURI).pathname.replace(/[^/]*$/, "");
+// current route as "player/48?y=2019", the same shape the old hash routes had
+const here = () => (location.pathname.startsWith(BASE) ? location.pathname.slice(BASE.length) : "").replace(/(^|\/)index\.html$/, "").replace(/\/$/, "") + location.search;
+// "#/player/48?y=2019" -> "/base/player/48/?y=2019" (trailing slash: each static page is a folder's index.html)
+const toPath = (h) => { const [p, q] = h.replace(/^#\/?/, "").split("?"); return BASE + (p ? p.replace(/\/$/, "") + "/" : "") + (q ? "?" + q : ""); };
+const fixLinks = (root) => root.querySelectorAll?.('a[href^="#/"]').forEach((a) => a.setAttribute("href", toPath(a.getAttribute("href"))));
 const DD = "https://ddragon.leagueoflegends.com/cdn/";
 const champImg = (c, sz = 32, cls = "ci") => `<img class="${cls}" src="${DD}${S.idx.dd.ver}/img/champion/${c}.png" width="${sz}" height="${sz}" alt="${esc(cname(c))}" title="${esc(cname(c))}" loading="lazy">`;
 const cname = (c) => (S.champs[c] && S.champs[c].n) || c;
@@ -445,9 +457,9 @@ function buildScope() {
   h += `</optgroup><optgroup label="Tournaments">`;
   for (const t of seasonTours()) h += `<option value="t:${t.s}">${esc(t.n)}</option>`;
   $("#scope").innerHTML = h + "</optgroup>";
-  $("#scope").onchange = (e) => { S.scope = e.target.value; const [p] = location.hash.split("?"); location.hash = p + scopeQ(); };
+  $("#scope").onchange = (e) => { S.scope = e.target.value; const [p] = ("#/" + here()).split("?"); location.hash = p + scopeQ(); };
   $("#season").innerHTML = seasonOpts();
-  $("#season").onchange = (e) => { const [p] = location.hash.split("?"); location.hash = p + (e.target.value ? "?y=" + e.target.value : ""); };
+  $("#season").onchange = (e) => { const [p] = ("#/" + here()).split("?"); location.hash = p + (e.target.value ? "?y=" + e.target.value : ""); };
 }
 const seasonOpts = () => S.idx.seasons.map((x) => `<option value="${x.y === CUR ? "" : x.y}">${x.y}</option>`).join("").replace("</option>", "</option><option value=\"all\">All time</option>");
 // filter params carried by every link: league/tournament scope and season
@@ -609,7 +621,27 @@ function scoreboard(g, focus) {
 
 // ---------------- pages
 const app = () => $("#app");
-const page = (h) => (app().innerHTML = h);
+// ads: build.py adds <meta name="google-adsense-account"> and <meta name="ad-slot"> once AdSense approves the site.
+// One responsive unit per page, at the bottom of the sidebar (or under the content on pages without one).
+const ADS = $('meta[name="google-adsense-account"]')?.content, AD_SLOT = $('meta[name="ad-slot"]')?.content;
+function placeAd() {
+  if (!ADS || !AD_SLOT || !$(".card", app()) || $(".legal", app())) return;
+  const box = document.createElement("div");
+  box.className = "card adbox";
+  box.innerHTML = `<span>Advertisement</span><ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS)}" data-ad-slot="${esc(AD_SLOT)}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+  ($(".grid2 > .stack", app()) || app()).append(box);
+  try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.warn(e); }
+}
+const page = (h) => { app().innerHTML = h; placeAd(); };
+function privacyPage() {
+  page(`<div class="card legal" style="padding:22px 24px"><h1>Privacy</h1><p class="muted">Last updated 2026-10-26</p>
+    <p>prostats.gg is a free fan site with no accounts or sign-ups. This page explains what happens to data when you visit.</p>
+    <h2>What we store on your device</h2><p>Your recent searches and favourites are kept in your browser's local storage so they're there next time. They never leave your device, and clearing your browser's site data removes them.</p>
+    <h2>Hosting</h2><p>The site is hosted on GitHub Pages, which may log your IP address for security and operations. See <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub's privacy statement</a>. Fonts load from Google Fonts and images from Riot Games and lolesports servers, which see the same request details any website would.</p>
+    <h2>Advertising</h2><p>We show ads through Google AdSense. Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this and other websites. Google's use of advertising cookies enables it and its partners to serve ads based on your visits to this site and/or other sites on the Internet.</p>
+    <p>You can opt out of personalised advertising in <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google's Ads Settings</a>, and opt out of some third-party vendors' cookies at <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">aboutads.info</a>. Visitors in the EEA, UK and Switzerland are asked for consent before personalised ads are shown. See <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses data from partner sites</a>.</p>
+    <h2>Contact</h2><p>Questions or removal requests: <a href="https://github.com/techreign/rift-ledger/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.</p></div>`);
+}
 
 async function home() {
   const ng = scopeGames();
@@ -619,7 +651,7 @@ async function home() {
   const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= (S.season === "all" ? 100 : Math.min(15, Math.max(5, ng / 120)))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
   const lgs = {}; for (const t of seasonTours()) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
   const np = S.idx.players.filter((p) => sumBy(p.by)[0]).length;
-  page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>PROS.GG</div>
+  page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>PROSTATS.GG</div>
     <div class="tag">${S.season === "all" ? `Every pro League of Legends game since ${S.idx.seasons.at(-1).y}` : `Every pro League of Legends game of ${seasonName()}`} — match histories, builds and stats.</div>
     <div class="bigsearch search"><div class="lg"><label for="hscope">Region</label><select id="hscope">${$("#scope").innerHTML.replace(/^<option value="">[^<]*</, '<option value="">All<')}</select></div><span class="div"></span>
       <div class="lg yr"><label for="hseason">Season</label><select id="hseason">${seasonOpts()}</select></div><span class="div"></span>
@@ -1231,10 +1263,13 @@ function wireSearch(q, box) {
 }
 
 // ---------------- router
+let keepTitle = false;
 async function route() {
-  const [path, qs] = location.hash.slice(2).split("?");
+  const [path, qs] = here().split("?");
   const q = new URLSearchParams(qs || ""), parts = (path || "").split("/");
-  const season = /^(all|\d{4})$/.test(q.get("y") || "") && q.get("y") != CUR ? q.get("y") : "";
+  // players and teams with no 2026 games ("o" ids) open on their whole career
+  const y = q.get("y") ?? ((parts[0] === "player" || parts[0] === "team") && /^o/.test(parts[1] || "") ? "all" : "");
+  const season = /^(all|\d{4})$/.test(y) && y != CUR ? y : "";
   if (season || ((parts[0] === "game" || parts[0] === "t") && isOldT(parts[1] || ""))) {
     if (!LIFE) app().innerHTML = `<div class="loading">Loading every season since ${S.idx.seasons.at(-1).y}…</div>`;
     try { await loadLife(); } catch (e) { console.error(e); page(`<div class="nf"><h1>Couldn't load earlier seasons</h1><p class="muted">Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Back to ${CUR}</a></p></div>`); return; }
@@ -1259,15 +1294,18 @@ async function route() {
     else if (p === "h2h") await h2hPage(a, b, parts[3]);
     else if (p === "teams") teamsPage();
     else if (p === "tournaments") toursPage();
+    else if (p === "privacy") privacyPage();
     else if (!p) await home();
     else notFound("page");
-    const name = $("h1")?.textContent; document.title = name && p ? `${name} · pros.gg` : "pros.gg · every pro game of 2026";
+    // the first page view keeps the static page's search-friendly title (pipeline/seo.py); later navigation sets a short one
+    if (keepTitle) keepTitle = false; else {
+    const name = p === "game" ? [...document.querySelectorAll("h1")].map((h) => h.textContent).join(" vs ") : $("h1")?.textContent; document.title = name && p ? `${name} · prostats.gg` : "prostats.gg · every pro game of 2026"; }
   } catch (e) {
     console.error(e);
     const kind = { player: "player", team: "team", champion: "champion", game: "game", t: "tournament", h2h: "player" }[parts[0]];
     if (/ 404$/.test(e.message) && kind) notFound(kind);
     else page(`<div class="nf"><h1>Something went wrong</h1><p class="muted">This page didn't load. Check your connection and try again.</p><p><button class="go" onclick="route()">Try again</button> <a class="star" href="#/">Home</a></p></div>`);
-    document.title = "pros.gg";
+    document.title = "prostats.gg";
   }
 }
 // friendly 404: old links, typos, players who changed IDs
@@ -1287,7 +1325,21 @@ function notFound(kind) {
   BIG = new Set(S.idx.dd.big);
   $("#built").textContent = `${S.idx.n.toLocaleString()} games · latest ${S.idx.built} · Data Dragon ${S.idx.dd.ver}`;
   buildScope(); setupSearch();
-  addEventListener("hashchange", route); route();
+  // in-app links become real paths as they're rendered (so crawlers see them) and are followed without a reload
+  fixLinks(document); new MutationObserver((ms) => { for (const m of ms) for (const n of m.addedNodes) if (n.nodeType === 1) { if (n.matches('a[href^="#/"]')) fixLinks(n.parentNode); else fixLinks(n); } }).observe(document.body, { childList: true, subtree: true });
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a[href]");
+    if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target || a.hasAttribute("download")) return;
+    const u = new URL(a.href, location.href);
+    if (u.origin !== location.origin || !u.pathname.startsWith(BASE) || /\.[a-z0-9]+$/i.test(u.pathname) || (u.hash && u.pathname === location.pathname)) return;
+    e.preventDefault(); if (u.href !== location.href) history.pushState(null, "", u.href); route();
+  });
+  // code that still sets location.hash = "#/..." lands here; swap the hash for the path in place
+  addEventListener("hashchange", () => { if (location.hash.startsWith("#/")) { history.replaceState(null, "", toPath(location.hash)); route(); } });
+  addEventListener("popstate", () => { if (!location.hash.startsWith("#/")) route(); });
+  keepTitle = !!$(".card.seo") && !location.hash.startsWith("#/");
+  if (location.hash.startsWith("#/")) history.replaceState(null, "", toPath(location.hash));
+  route();
 })();
 </script>
 </body>

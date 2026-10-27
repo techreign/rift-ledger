@@ -56,3 +56,13 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Launch prep: build.py SITE constant drives canonical/og URLs, robots.txt, sitemap.xml. README "Custom domain"
   has the DNS records + Pages steps. Still on the user: pros.gg is taken (registered 2017, Namecheap); pick another (free 2026-10-26: prostats.gg, prosgg.gg, prodb.gg, proledger.gg, prosgg.com), set DNS, Pages custom domain, flip SITE;
   send gol.gg the permission note.
+
+## 2026-10-26 (late): prostats.gg, SEO, ads prep
+- User picked **prostats.gg** (pros.gg is taken). Display name/og.png renamed. NOT bought yet: user buys it, sets DNS
+  + Pages custom domain, then flip SITE in build.py.
+- Path routing replaced hash routing (app rewrites #/ links/hashes to paths; click handler + pushState; BASE from
+  <base href>). pipeline/seo.py: app.js/app.css split out, ~9.4k static pages + 404.html shell + full sitemap; first
+  load keeps the static SEO title. dist ≈ 460 MB.
+- Ads: ADSENSE / AD_SLOT in build.py (env or constant) → meta tags, AdSense script, ads.txt; app placeAd() one unit
+  per page. /privacy page + footer link. Waiting on: domain → AdSense application → ids. Then Search Console + sitemap.
+- Still open: gol.gg permission (more important now that the site will carry ads).

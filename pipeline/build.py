@@ -11,7 +11,8 @@ Outputs (all fetched lazily by the app):
   data/h/...              earlier seasons from Oracle's Elixir (data/oe, made by oracle.py): index.json, meta.json, p/ t/ c/
                           (their g/ shards sit with the rest); only fetched when a viewer picks a past season
 """
-import gzip, json, re, shutil, sys, time, unicodedata, urllib.request
+import gzip, json, os, re, shutil, sys, time, unicodedata, urllib.request
+import seo
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -20,7 +21,11 @@ DIST, OUT = ROOT / "dist", ROOT / "dist" / "data"
 CACHE = ROOT / "cache"
 # public address: og/share tags and canonical link point here. To move to a custom domain, set this to
 # "https://pros.gg/" and add the domain under repo Settings -> Pages (see README "Custom domain").
-SITE = "https://techreign.github.io/rift-ledger/"
+# AdSense: the publisher id ("ca-pub-...") and one responsive display ad unit's slot id, both from the AdSense
+# dashboard. Empty = no ads. The id alone already adds the site-verification tag, ads.txt and Auto ads' script.
+ADSENSE = os.environ.get("ADSENSE") or ""
+AD_SLOT = os.environ.get("AD_SLOT") or ""
+SITE = os.environ.get("SITE") or "https://techreign.github.io/rift-ledger/"  # SITE=http://127.0.0.1:8793/ for a local test
 
 def get_json(url, name):
     p = CACHE / name
@@ -420,10 +425,14 @@ def main():
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))
     (OUT / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
     page = (ROOT / "src" / "app.html").read_text(encoding="utf-8").replace("https://techreign.github.io/rift-ledger/", SITE)
-    (DIST / "index.html").write_text(page, encoding="utf-8")
-    (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}sitemap.xml\n", encoding="utf-8")
-    (DIST / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>{SITE}</loc></url></urlset>\n', encoding="utf-8")
+    if ADSENSE:
+        page = page.replace("</head>", f'<meta name="google-adsense-account" content="{ADSENSE}">' + (f'<meta name="ad-slot" content="{AD_SLOT}">' if AD_SLOT else "")
+            + f'\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE}" crossorigin="anonymous"></script>\n</head>', 1)
+        (DIST / "ads.txt").write_text(f"google.com, {ADSENSE.removeprefix('ca-')}, DIRECT, f08c47fec0942fa0\n", encoding="utf-8")
     if (ROOT / "static").exists(): shutil.copytree(ROOT / "static", DIST, dirs_exist_ok=True)
+    for d in ("player", "team", "champion", "t", "privacy"): shutil.rmtree(DIST / d, ignore_errors=True)
+    seo.write_pages(DIST, page, SITE)  # index.html, 404.html, app.js/css, a page per player/team/champion/tournament, sitemap
+    (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}sitemap.xml\n", encoding="utf-8")
     unmatched = sorted(k for k, v in champ_id.items() if v not in {x[0] for x in dd["champs"].values()})
     if unmatched: print("champions not in Data Dragon:", unmatched, file=sys.stderr)
     size = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file()) / 1e6

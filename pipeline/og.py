@@ -9,7 +9,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "static"
-NAME, TAG = "PROS.GG", "Every pro League of Legends game of 2026"
+NAME, TAG = "PROSTATS.GG", "Every pro League of Legends game of 2026"
 SUB = "Match histories · builds · tier list · leaderboards · head-to-head"
 GOLD, BG = (200, 170, 110), (14, 16, 21)
 CHAMPS = ["Orianna", "JarvanIV", "Rumble", "Varus", "Nautilus", "Azir", "Ahri", "LeeSin"]

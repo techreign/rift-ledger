@@ -1,4 +1,4 @@
-# pros.gg
+# prostats.gg
 
 Every 2026 pro League of Legends game in one op.gg-style site: player match histories (filters, last-20 summary, form
 graph, played-with, lane opponents), champion pages (builds, skill order, full runes, counters, synergy), a tier list by
@@ -41,13 +41,34 @@ responding. Team logos and player photos are hotlinked from the lolesports API.
    2606:50c0:8003::153; `CNAME www` → techreign.github.io.
 2. Repo Settings → Pages → Custom domain: enter it, wait for the DNS check, tick "Enforce HTTPS". (With Actions
    deploys, Pages ignores a CNAME file, so this setting is the only place the domain lives.)
-3. Set `SITE` in `pipeline/build.py` to the new address (e.g. `https://pros.gg/`) and push. Share tags, the
-   canonical link, robots.txt and sitemap.xml follow it. The data paths are relative, so nothing else changes, and
-   the old github.io address redirects to the new domain on its own.
+3. Set `SITE` in `pipeline/build.py` to the new address (`https://prostats.gg/`) and push. `<base href>`, share
+   tags, canonical links, robots.txt and sitemap.xml all follow it, and the old github.io address redirects to the
+   new domain on its own.
+
+### Search (SEO)
+
+The app routes on real paths (`player/48/`, `team/2809/`, `champion/Azir/`, `t/<slug>/`); old `#/` links are
+rewritten in place. `pipeline/seo.py` writes a static `index.html` for every 2026 player/team, every older player/team
+with 30+ games, every champion and tournament (~9.4k pages): its own title, description, canonical, JSON-LD and a
+plain-HTML summary with links, which the app replaces once it loads. Other paths (games, h2h, filters) fall through to
+`404.html`, the same app shell. Local test of the path routing: `SITE=http://127.0.0.1:8794/ python pipeline/build.py`,
+then serve `dist` with a server that answers missing paths with 404.html.
+
+After the domain is live: add it to [Google Search Console](https://search.google.com/search-console) as a Domain
+property (DNS TXT record), submit `https://prostats.gg/sitemap.xml`, and do the same in Bing Webmaster Tools.
+
+### Ads
+
+1. Apply at [AdSense](https://adsense.google.com) with the custom domain (github.io subdomains aren't accepted).
+2. Set `ADSENSE = "ca-pub-..."` in `pipeline/build.py` (or the `ADSENSE` env var in the workflow) and push: that adds
+   the verification tag, the AdSense script and `ads.txt`, which AdSense checks during review.
+3. After approval, in AdSense: turn on the GDPR/US-state consent messages (Privacy & messaging; required for EEA/UK
+   visitors), create one responsive display ad unit, and set its id as `AD_SLOT`. The app then puts one unit per
+   page: bottom of the sidebar on profile pages, under the content elsewhere, never on error or privacy pages.
 
 ## Credits
 
 2026 game data from [Games of Legends (gol.gg)](https://gol.gg); earlier seasons from
-[Oracle's Elixir](https://oracleselixir.com); images from Riot's Data Dragon. pros.gg isn't endorsed
+[Oracle's Elixir](https://oracleselixir.com); images from Riot's Data Dragon. prostats.gg isn't endorsed
 by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or
 managing Riot Games properties.
