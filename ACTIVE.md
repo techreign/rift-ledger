@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-26 (op.gg parity, VODs, Players merge)
+Last updated: 2026-10-27 (Dota 2 section, game strip, portraits)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -87,3 +87,12 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
   -- no pro player match histories or career pages. That's our gap to own.
 - Ideas not built: community/posting pages need a backend (Giscus on GitHub Discussions is the cheap option);
   other games' pro scenes (Valorant has VLR.gg; TFT pro data is thin).
+
+## 2026-10-27: Dota 2, game strip, portraits
+- Dota 2 section at /dota/: pipeline/dota.py (OpenDota, ~3k calls/day, 15 min per 3-hourly run) → data/dota; dota_build.py
+  → dist/dota (own SPA src/dota.html, shares app.css). Backfill 1147 / 5933 premium+professional 2026 matches on 10-27.
+- Game switcher (LoL | Dota 2) is its own strip above the header (.gbar). Player profile shows the lolesports cutout
+  big on a gold spotlight + team logo watermark (portrait() in app.html).
+- Launch blockers (all user-side): buy prostats.gg → DNS + Pages custom domain → flip SITE in build.py → AdSense
+  application → ADSENSE/AD_SLOT → Search Console Domain property + Change of Address.
+- Next builds: Valorant / CS2 from terms-OK sources (Riot esports API, Liquipedia CC-BY-SA; not VLR/HLTV).
