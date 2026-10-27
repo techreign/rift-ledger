@@ -65,4 +65,4 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
   load keeps the static SEO title. dist ≈ 460 MB.
 - Ads: ADSENSE / AD_SLOT in build.py (env or constant) → meta tags, AdSense script, ads.txt; app placeAd() one unit
   per page. /privacy page + footer link. Waiting on: domain → AdSense application → ids. Then Search Console + sitemap.
-- Still open: gol.gg permission (more important now that the site will carry ads).
+- gol.gg permission: user confirmed 2026-10-26 they have it.
