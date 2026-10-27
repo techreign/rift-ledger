@@ -204,26 +204,90 @@ body.home header .search { visibility: hidden; }
 .biglogo i { width: 46px; height: 46px; border: 4px solid var(--gold); transform: rotate(45deg); border-radius: 6px; position: relative; flex: none; }
 .biglogo i::after { content: ""; position: absolute; inset: 8px; background: var(--gold); border-radius: 2px; }
 .landing .tag { color: #c9ced8; margin: 10px 0 34px; font-size: 15px; text-shadow: 0 2px 10px rgba(0,0,0,.8); }
-.bigsearch { position: relative; flex: none; margin: 0 auto; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: #4767ad; border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); text-align: left; padding: 0 30px 0 36px; }
-.bigsearch:focus-within { box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 2px #9db8f0; }
+.bigsearch { position: relative; flex: none; margin: 0 auto; width: 100%; max-width: 860px; display: flex; align-items: center; height: 72px; background: rgba(24,27,34,.86); backdrop-filter: blur(8px); border: 1px solid rgba(200,170,110,.45); border-radius: 36px; box-shadow: 0 16px 50px rgba(0,0,0,.55); text-align: left; padding: 0 10px 0 36px; }
+.bigsearch:focus-within { border-color: var(--gold); box-shadow: 0 16px 50px rgba(0,0,0,.55), 0 0 0 3px rgba(200,170,110,.18); }
 .bigsearch .lg { display: flex; flex-direction: column; justify-content: center; padding-right: 16px; width: 210px; flex: none; position: relative; }
 .bigsearch .lg.yr { width: 130px; padding-left: 18px; }
-.bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid #d6e0f5; pointer-events: none; }
-.bigsearch label { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 3px; }
-.bigsearch .lg select { appearance: none; border: 0; background: transparent; color: #d6e0f5; font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
-.bigsearch .lg select option, .bigsearch .lg select optgroup { color: #e8eaee; background: #2c3a5c; }
-.bigsearch .div { width: 1px; height: 28px; background: rgba(255,255,255,.28); flex: none; }
+.bigsearch .lg::after { content: ""; position: absolute; right: 20px; bottom: 10px; border: 5px solid transparent; border-top: 6px solid var(--gold); pointer-events: none; }
+.bigsearch label { font-size: 11.5px; font-weight: 800; color: var(--gold2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+.bigsearch .lg select { appearance: none; border: 0; background: transparent; color: var(--text); font-size: 15px; padding: 0 30px 0 0; outline: none; cursor: pointer; width: 100%; text-overflow: ellipsis; }
+.bigsearch .lg select option, .bigsearch .lg select optgroup { color: #e8eaee; background: var(--panel2); }
+.bigsearch .div { width: 1px; height: 28px; background: var(--line); flex: none; }
 .bigsearch .q { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; min-width: 0; }
 .bigsearch .q input { border: 0; outline: none; background: transparent; color: #fff; font-size: 15px; padding: 0; width: 100%; }
-.bigsearch .q input::placeholder { color: #bccbeb; }
-.bigsearch button { border: 0; background: none; color: #fff; font-weight: 800; font-size: 30px; letter-spacing: -.02em; cursor: pointer; padding: 0; font-style: italic; }
-.bigsearch button:hover { color: #d6e0f5; }
+.bigsearch .q input::placeholder { color: var(--faint); }
+.bigsearch button { border: 0; background: var(--gold); color: #17191f; font-weight: 800; font-size: 24px; letter-spacing: -.02em; cursor: pointer; height: 52px; padding: 0 24px; border-radius: 26px; font-style: italic; }
+.bigsearch button:hover { filter: brightness(1.1); }
 .bigsearch .sugg { top: 80px; color: var(--text); z-index: 5; }
 .bigsearch select, .bigsearch input { height: 22px; line-height: 22px; display: block; }
 .landing .chips { justify-content: center; margin-top: 24px; max-width: 900px; }
-.landing .chips .chip { background: rgba(23,26,33,.75); backdrop-filter: blur(4px); }
+.landing .chips .chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(23,26,33,.75); backdrop-filter: blur(4px); }
 .landing .counts { margin-top: 18px; color: var(--faint); font-size: 12.5px; }
 .landing .counts b { color: var(--dim); }
+/* front page sections: featured event, stars, meta spotlight, records, pentakills */
+.hsec { margin-top: 26px; }
+.hsec > h2 { display: flex; align-items: baseline; gap: 10px; font-size: 19px; margin: 0 0 12px; }
+.hsec > h2 a { margin-left: auto; font-size: 13px; font-weight: 600; }
+.hfeat { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 0; overflow: hidden; padding: 0; position: relative; isolation: isolate; }
+.hfeat::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse 60% 120% at 0% 0%, rgba(200,170,110,.2), transparent 60%); }
+.hfeat .evb { display: flex; flex-direction: column; gap: 8px; padding: 24px; border-right: 1px solid var(--line); }
+.hfeat .evb .lgl, .hfeat .evb .lgt { width: 72px; height: 72px; }
+.hfeat .evb h2 { font-size: 26px; margin: 4px 0 0; }
+.hfeat .evb .go { margin-top: auto; padding: 9px 14px; border-radius: 8px; background: var(--gold); color: #17191f; font-weight: 800; text-align: center; }
+.hfeat .evb .go:hover { filter: brightness(1.1); color: #17191f; }
+.hfeat .stand { padding: 18px 20px; }
+.hfeat .stand h4 { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint); }
+.hfeat .tg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; }
+.hfeat .tg a { display: grid; grid-template-columns: 18px 26px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; color: var(--text); }
+.hfeat .tg a:hover { background: var(--panel2); }
+.hfeat .tg .n { color: var(--faint); font-weight: 800; font-size: 12px; }
+.hfeat .tg b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hfeat .tg em { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; }
+.hstars { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.hstars a { display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; color: var(--text); transition: transform .15s, border-color .15s; }
+.hstars a:hover { transform: translateY(-3px); border-color: var(--gold); color: var(--text); }
+.hstars .avatar.cut { width: 100%; height: 150px; margin: 0; align-self: auto; }
+.hstars .avatar.cut img.pph { width: 196px; height: 155px; }
+.hstars .avatar:not(.cut) { margin: 24px auto 18px; }
+.hstars .info { padding: 10px 8px 14px; display: grid; gap: 4px; justify-items: center; width: 100%; }
+.hstars .info b { font-size: 17px; }
+.hstars .info .tm { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--faint); }
+.hstars .info em { font-style: normal; font-size: 22px; font-weight: 800; line-height: 1.1; }
+.hstars .info small { color: var(--faint); font-size: 11.5px; }
+.hspot { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.hspot a { position: relative; isolation: isolate; height: 190px; border-radius: var(--r); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; padding: 16px 18px; color: #fff; border: 1px solid var(--line); }
+.hspot a::before { content: ""; position: absolute; inset: 0; z-index: -2; background: var(--sp) center 20% / cover no-repeat; transition: transform .4s; }
+.hspot a::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(10,12,16,.05) 20%, rgba(10,12,16,.92)); }
+.hspot a:hover::before { transform: scale(1.05); }
+.hspot a:hover { color: #fff; border-color: var(--gold); }
+.hspot .k { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gold2); }
+.hspot b { font-size: 24px; line-height: 1.15; }
+.hspot .big { font-size: 15px; color: #d7dbe3; }
+.hspot .big strong { font-size: 20px; color: #fff; }
+.hrec { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.hrec a { display: flex; flex-direction: column; gap: 6px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); color: var(--text); position: relative; overflow: hidden; }
+.hrec a:hover { border-color: var(--gold); color: var(--text); }
+.hrec .ic { font-size: 22px; line-height: 1; }
+.hrec .k { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.hrec em { font-style: normal; font-size: 28px; font-weight: 800; color: var(--gold2); line-height: 1.1; }
+.hrec .who { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--dim); min-width: 0; }
+.hrec .who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hrec .bgc { position: absolute; right: -14px; bottom: -14px; opacity: .16; border-radius: 50%; pointer-events: none; }
+.hpenta { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.hpenta a { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); color: var(--text); }
+.hpenta a:hover { border-color: #e84057; color: var(--text); }
+.hpenta .pc5 { position: relative; flex: none; }
+.hpenta .pc5 small { position: absolute; right: -6px; bottom: -6px; background: #e84057; color: #fff; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 5px; }
+.hpenta div { display: grid; min-width: 0; } .hpenta div span { font-size: 12px; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hlatest .gl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.hlatest .gl a { border-bottom: 1px solid #20242d !important; }
+.hlatest .gl a:nth-child(odd) { border-right: 1px solid #20242d; }
+@media (max-width: 900px) {
+  .hfeat { grid-template-columns: minmax(0, 1fr); } .hfeat .evb { border-right: 0; border-bottom: 1px solid var(--line); }
+  .hstars { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .hspot { grid-template-columns: minmax(0, 1fr); }
+  .hlatest .gl { grid-template-columns: minmax(0, 1fr); } .hfeat .tg { grid-template-columns: minmax(0, 1fr); }
+}
+
 .hero { padding: 26px 0 8px; display: flex; align-items: end; gap: 24px; flex-wrap: wrap; }
 .hero h1 { font-size: 34px; letter-spacing: -.02em; }
 .hero h1 b { color: var(--gold); }
@@ -473,6 +537,7 @@ footer p { margin: 4px 0; }
   .hero h1 { font-size: 26px; } .stat-row { margin-left: 0; }
   .landing { padding: 40px 16px 28px; } .biglogo { font-size: 30px; gap: 12px; } .biglogo i { width: 28px; height: 28px; border-width: 3px; } .biglogo i::after { inset: 5px; }
   .landing .tag { font-size: 13px; margin-bottom: 22px; }
+  .bigsearch button { font-size: 16px; height: 40px; padding: 0 12px; } .bigsearch .lg.yr { display: none; } .bigsearch { padding-left: 22px; } .bigsearch .lg { width: 110px; }
   .bigsearch { height: 60px; padding: 0 18px 0 22px; } .bigsearch .lg { width: 92px; padding-right: 8px; } .bigsearch .lg.yr { width: 74px; padding-left: 10px; } .bigsearch .lg::after { right: 8px; } .bigsearch .q { padding: 0 12px; } .bigsearch button { font-size: 22px; }
   .mh { grid-template-columns: 72px 1fr 28px; } .mh .kda { grid-column: 2; } .mh .champ { grid-column: 2; }
   .mh .meta { grid-row: span 2; } .mh .items { grid-column: 1 / 3; }
@@ -862,10 +927,9 @@ function privacyPage() {
 
 async function home() {
   const ng = scopeGames();
-  const recent = S.idx.recent.filter((g) => inScope(g.t)).slice(0, 14);
+  const recent = S.idx.recent.filter((g) => inScope(g.t)).slice(0, 8);
   const champs = S.idx.champs.map((c) => { let p = 0, w = 0, b = 0; for (const [t, v] of Object.entries(c.by)) if (inScope(t)) { p += v[0]; w += v[1]; b += v[2]; } return { c: c.c, p, w, b, pr: pct(p + b, ng) }; })
-    .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr).slice(0, 12);
-  const pl = S.idx.players.map((p) => ({ p, s: S.scope ? sumBy(p.by) : sumMajor(p.by) })).filter((x) => x.s[0] >= (S.season === "all" ? 100 : Math.min(15, Math.max(5, ng / 120)))).sort((a, b) => kdaR(b.s[2], b.s[3], b.s[4]) - kdaR(a.s[2], a.s[3], a.s[4])).slice(0, 10);
+    .filter((c) => c.p + c.b).sort((a, b) => b.pr - a.pr);
   const lgs = {}; for (const t of seasonTours()) lgs[t.lg] = (lgs[t.lg] || 0) + t.g;
   const np = S.idx.players.filter((p) => sumBy(p.by)[0]).length;
   page(`<section class="landing" style="--splash:url('${DD}img/champion/splash/${champs[0]?.c || "Azir"}_0.jpg')"><div class="bg"></div><div class="biglogo"><i></i>PROSTATS.GG</div>
@@ -874,27 +938,72 @@ async function home() {
       <div class="lg yr"><label for="hseason">Season</label><select id="hseason">${seasonOpts()}</select></div><span class="div"></span>
       <div class="q"><label for="hq">Search</label><input id="hq" placeholder="Pro player, team or champion" autocomplete="off"></div>
       <button id="hgo" aria-label="Search">.GG</button><div class="sugg" id="hsugg" hidden></div></div>
-    <div class="chips">${Object.entries(lgs).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([lg, n]) => `<a class="chip ${S.scope === "lg:" + lg ? "on" : ""}" href="#/?${new URLSearchParams({ s: "lg:" + lg, ...(S.season && { y: S.season }) })}">${esc(lg)} <span class="faint">${n}</span></a>`).join("")}${S.scope ? `<a class="chip" href="#/${S.season ? "?y=" + S.season : ""}">Clear filter ✕</a>` : ""}</div>
-    <div class="counts"><b>${ng.toLocaleString()}</b> games · <b>${np.toLocaleString()}</b> players · <b>${seasonTours().filter((t) => inScope(t.s)).length}</b> tournaments · <b>${Object.keys(lgs).length}</b> leagues${S.season ? "" : ` · patch <b>${S.idx.patches[0] || ""}</b>`}</div></section>
-    <div class="grid2b"><div class="card"><h3>Latest games <span class="sp faint">${esc(scopeName())}</span></h3><div class="gl">${recent.map(gameLine).join("") || `<div class="empty">No games.</div>`}</div></div>
-    <div class="stack"><div class="card"><h3>Champion meta <span class="sp faint">presence · ${ng.toLocaleString()} games</span></h3><div id="hc"></div></div>
-    <div class="card"><h3>Best KDA <span class="sp faint">${S.scope ? esc(scopeName()) : "major leagues"}</span></h3><div id="hp"></div></div></div></div>`);
-  table($("#hc"), [
-    { k: "c", h: "Champion", f: (r) => `<a class="who" href="${link("champion/" + r.c)}">${champImg(r.c, 28)}<b>${esc(cname(r.c))}</b></a>` },
-    { k: "pr", h: "Presence", num: 1, f: (r) => `<b>${r.pr}%</b>` },
-    { k: "p", h: "Picks", num: 1, f: (r) => r.p }, { k: "b", h: "Bans", num: 1, f: (r) => r.b },
-    { k: "wr", h: "Win", num: 1, f: (r) => `<span class="${wrCls(pct(r.w, r.p))}">${r.p ? pct(r.w, r.p) + "%" : "–"}</span>` },
-  ], champs, { page: 12 });
-  table($("#hp"), [
-    { k: "n", h: "Player", f: (x) => `<div class="who">${pPhoto(x.p, 26)}<div><a href="${link("player/" + x.p.id)}"><b>${esc(x.p.n)}</b></a> <span class="faint">${esc(x.p.tn)}</span></div></div>` },
-    { k: "r", h: "Role", f: (x) => `<span class="role">${RL[x.p.r]}</span>` },
-    { k: "g", h: "Games", num: 1, f: (x) => x.s[0] },
-    { k: "kda", h: "KDA", num: 1, f: (x) => { const r = kdaR(x.s[2], x.s[3], x.s[4]); return `<b class="${kdaCls(r)}">${f2(r)}</b>`; } },
-  ], pl, { page: 10 });
+    <div class="chips">${Object.entries(lgs).sort((a, b) => b[1] - a[1]).slice(0, 12).map(([lg, n]) => `<a class="chip ${S.scope === "lg:" + lg ? "on" : ""}" href="#/?${new URLSearchParams({ s: "lg:" + lg, ...(S.season && { y: S.season }) })}">${lgLogo(lg, 16)} ${esc(lg)}</a>`).join("")}${S.scope ? `<a class="chip" href="#/${S.season ? "?y=" + S.season : ""}">Clear filter ✕</a>` : ""}</div></section>
+    ${homeSections(champs, ng)}
+    <section class="hsec hlatest"><h2>Latest results <span class="sp faint" style="font-size:13px;font-weight:600">${esc(scopeName())}</span></h2><div class="card"><div class="gl">${recent.slice(0, 8).map(gameLine).join("") || `<div class="empty">No games.</div>`}</div></div></section>`);
   $("#hscope").value = S.scope; $("#hseason").value = S.season;
   $("#hscope").onchange = (e) => { location.hash = "#/?" + new URLSearchParams({ ...(e.target.value && { s: e.target.value }), ...(S.season && { y: S.season }) }); };
   $("#hseason").onchange = (e) => { location.hash = "#/" + (e.target.value ? "?y=" + e.target.value : ""); };
   $("#hgo").onclick = wireSearch($("#hq"), $("#hsugg"));
+}
+// front page below the search: the event everyone's watching, its stars, the meta in pictures, season records, pentakills
+function featuredEvent() {
+  const ts = seasonTours().filter((t) => t.g && inScope(t.s));
+  const f = ts.find((t) => INTL.test(t.lg) && t.g >= 5) || ts.find((t) => MAJOR.test(t.lg)) || ts[0];
+  if (!f) return null;
+  const tours = ts.filter((t) => t.lg === f.lg && t.y === f.y);
+  const a = tours.map((t) => t.a).filter(Boolean).sort()[0], b = tours.map((t) => t.b).filter(Boolean).sort().at(-1);
+  const live = S.season === "" && b && (Date.now() - Date.parse(b)) / 864e5 <= 3;
+  return { lg: f.lg, y: f.y, name: `${f.lg} ${f.y}`, main: f, tours, a, b, live, g: tours.reduce((n, t) => n + t.g, 0) };
+}
+function homeSections(champs, ng) {
+  let out = "";
+  const ev = featuredEvent();
+  if (ev) {
+    const inEv = (by) => ev.tours.reduce((s, t) => { const v = by[t.s]; if (v) v.forEach((x, i) => (s[i] = (s[i] || 0) + x)); return s; }, []);
+    const teams = S.idx.teams.map((t) => ({ t, s: inEv(t.by) })).filter((x) => x.s[0]).sort((x, y) => 2 * y.s[1] - y.s[0] - (2 * x.s[1] - x.s[0]) || y.s[1] - x.s[1]).slice(0, 10);
+    out += `<section class="hsec"><div class="card hfeat"><div class="evb">${lgLogo(ev.lg, 72)}<h2>${esc(ev.name)}${ev.live ? ` <span class="live">LIVE</span>` : ""}</h2>
+      <span class="muted">${fmtD(ev.a)} – ${fmtD(ev.b)} · ${ev.g} games · ${teams.length < 10 ? teams.length : S.idx.teams.filter((t) => inEv(t.by)[0]).length} teams</span>
+      <span class="faint" style="font-size:12.5px">${ev.tours.map((t) => esc(t.n.replace(ev.name, "").trim() || t.n)).join(" · ")}</span>
+      <a class="go" href="${link("t/" + ev.main.s)}">Matches & bracket →</a></div>
+      <div class="stand"><h4>Top teams · game record</h4><div class="tg">${teams.map((x, i) => `<a href="${link("team/" + x.t.id)}"><span class="n">${i + 1}</span>${tLogo(x.t.id, 26)}<b>${esc(x.t.n)}</b><em><span class="good">${x.s[1]}</span><span class="faint">–</span><span class="bad">${x.s[0] - x.s[1]}</span></em></a>`).join("")}</div></div></div></section>`;
+    // one standout per role: best KDA among players with a fair share of the event's games
+    const pl = S.idx.players.map((p) => ({ p, s: inEv(p.by) })).filter((x) => x.s[0]);
+    const minG = Math.max(3, Math.round(Math.max(0, ...pl.map((x) => x.s[0])) * 0.2));
+    const stars = ROLES.map((r) => pl.filter((x) => x.p.r === r && x.s[0] >= minG).sort((x, y) => kdaR(y.s[2], y.s[3], y.s[4]) - kdaR(x.s[2], x.s[3], x.s[4]))[0]).filter(Boolean);
+    if (stars.length >= 3) out += `<section class="hsec"><h2>Stars of ${esc(ev.name)} <span class="sp faint" style="font-size:13px;font-weight:600">best KDA per role</span><a href="${link("players")}">All players →</a></h2>
+      <div class="hstars">${stars.map((x) => { const k = kdaR(x.s[2], x.s[3], x.s[4]); return `<a href="${link("player/" + x.p.id)}">${portrait(x.p, x.p.n)[1]}
+        <div class="info"><span class="role">${RL[x.p.r]}</span><b>${esc(x.p.n)}</b><span class="tm">${tLogo(x.p.tm, 16)}${esc(x.p.tn)}</span><em class="${kdaCls(k)}">${f2(k)} KDA</em>
+        <small>${x.s[1]}W ${x.s[0] - x.s[1]}L · ${f1(x.s[2] / x.s[0])}/${f1(x.s[3] / x.s[0])}/${f1(x.s[4] / x.s[0])}</small></div></a>`; }).join("")}</div></section>`;
+  }
+  // the meta as three splash-art tiles
+  const minP = Math.max(8, Math.round(ng * 0.01));
+  const top = champs[0], best = [...champs].filter((c) => c.p >= minP).sort((a, b) => b.w / b.p - a.w / a.p)[0];
+  const pocket = champs.filter((c) => c.p >= 3 && c.p < minP && c.w / c.p >= .6).sort((a, b) => b.w / b.p - a.w / a.p || b.p - a.p)[0];
+  const banned = [...champs].sort((a, b) => b.b - a.b).find((c) => c !== top);
+  const tile = (c, k, line) => c ? `<a href="${link("champion/" + c.c)}" style="--sp:url('${DD}img/champion/splash/${c.c}_0.jpg')"><span class="k">${k}</span><b>${esc(cname(c.c))}</b><span class="big">${line}</span></a>` : "";
+  if (top) out += `<section class="hsec"><h2>The meta right now <a href="${link("champions")}">Tier list →</a></h2><div class="hspot">
+    ${tile(top, "Most contested", `<strong>${top.pr}%</strong> presence · ${top.b} bans`)}
+    ${tile(best, "Winning the most", best ? `<strong>${pct(best.w, best.p)}%</strong> win rate · ${best.p} games` : "")}
+    ${pocket ? tile(pocket, "Pocket pick", `<strong>${pocket.w}–${pocket.p - pocket.w}</strong> in ${pocket.p} games`) : tile(banned, "Most feared", `<strong>${banned?.b}</strong> bans`)}</div></section>`;
+  // season records + pentakills (the current season only; old seasons come from Oracle's Elixir without multikills)
+  const rc = S.idx.rec;
+  if (rc && rc.long && S.season === "" && !S.scope) {
+    const vs = (r) => `${tLogo(r.tm[0][0], 16)}<span>${esc(r.tm[0][1])} vs ${esc(r.tm[1][1])}</span>`;
+    const pl = (r) => `${pPhoto(S.players[r.p], 20)}<span>${esc(r.n)} · ${esc(cname(r.c))}</span>`;
+    const card = (r, ic, k, big, who, c) => r ? `<a href="${gLink(r.t, r.g)}"><span class="ic">${ic}</span><span class="k">${k}</span><em>${big}</em><span class="who">${who}</span>${c ? champImg(c, 92, "bgc") : ""}</a>` : "";
+    out += `<section class="hsec"><h2>${seasonName()} records</h2><div class="hrec">
+      ${card(rc.long, "⏳", "Longest game", dur(rc.long.len), vs(rc.long))}
+      ${card(rc.fast, "⚡", "Fastest game", dur(rc.fast.len), vs(rc.fast))}
+      ${card(rc.blood, "🩸", "Bloodiest game", `${rc.blood.tm[0][3] + rc.blood.tm[1][3]} kills`, vs(rc.blood))}
+      ${card(rc.kills, "🗡️", "Most kills, one game", `${rc.kills.k} kills`, pl(rc.kills), rc.kills.c)}
+      ${card(rc.perfect, "🛡️", "Best deathless game", `${rc.perfect?.k}/0/${rc.perfect?.a}`, rc.perfect ? pl(rc.perfect) : "", rc.perfect?.c)}</div></section>`;
+    if (rc.pentas?.length) out += `<section class="hsec"><h2>Pentakills <span class="sp faint" style="font-size:13px;font-weight:600">${rc.pentas.length} this season</span></h2><div class="hpenta">
+      ${rc.pentas.slice(0, 8).map((r) => { const me = r.tm.find((t) => S.players[r.p]?.tm === t[0]) || r.tm[0], op = r.tm.find((t) => t !== me);
+        return `<a href="${gLink(r.t, r.g)}"><span class="pc5">${champImg(r.c, 44, "ci r")}<small>PENTA</small></span><div><b>${esc(r.n)} <span class="faint" style="display:inline;font-weight:600">${esc(cname(r.c))}</span></b>
+        <span>${r.k}/${r.d}/${r.a} vs ${esc(op?.[1] || "")}</span><span>${esc(S.tours[r.t]?.n || "")} · ${ago(r.dt)}</span></div></a>`; }).join("")}</div></section>`;
+  }
+  return out;
 }
 const sumBy = (by) => { const s = new Array(14).fill(0); for (const [t, v] of Object.entries(by)) if (inScope(t)) v.forEach((x, i) => (s[i] += x)); return s; };
 function gameLine(g) {

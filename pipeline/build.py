@@ -175,6 +175,21 @@ def tags(p):
     mk = next((n for n in (5, 4, 3, 2) if st.get(f"x{n}")), None)
     return {k: v for k, v in dict(sc=p.get("sc"), rk=p.get("rk"), tb=p.get("tb") or None, mk=mk, fb=st.get("fb"), so=st.get("solo") or None).items() if v is not None}
 
+def records(games):
+    """front-page season records: longest / fastest / bloodiest game, most kills and best deathless game by one player, every pentakill"""
+    gs = [g for g in games if g.get("len")]
+    if not gs: return {}
+    gl = lambda g: dict(g=g["id"], t=g["t"], dt=g["date"], len=g["len"], tm=[[t["id"], t["name"], int(t["win"]), t["k"]] for t in g["teams"]])
+    pr = lambda g, p: dict(gl(g), p=p["pid"], n=p["n"], c=p["ci"], k=p["k"], d=p["d"], a=p["a"])
+    pl = [(g, p) for g in gs for p in g["players"]]
+    perfect = [x for x in pl if not x[1]["d"]]
+    pentas = sorted((x for x in pl if (x[1].get("st") or {}).get("x5")), key=lambda x: x[0]["date"] or "", reverse=True)
+    return dict(long=gl(max(gs, key=lambda g: g["len"])), fast=gl(min(gs, key=lambda g: g["len"])),
+                blood=gl(max(gs, key=lambda g: sum(t["k"] for t in g["teams"]))),
+                kills=pr(*max(pl, key=lambda x: (x[1]["k"], -x[1]["d"]))),
+                perfect=pr(*max(perfect, key=lambda x: x[1]["k"] + x[1]["a"])) if perfect else None,
+                pentas=[pr(g, p) for g, p in pentas])
+
 def lineups(g):
     """both teams for a player's match-history row (op.gg style): [[blue [pid, champion] x5], [red ...]], role order"""
     order = lambda p: ROLES.index(p["role"]) if p["role"] in ROLES else 9
@@ -503,7 +518,7 @@ def main():
     print(f"league logos: {len(lglo)}/{len(lnames)}")
     index = dict(lglo=lglo, logos=logos, built=games[0]["date"] if games else None, n=len(games), v=int(time.time()), seasons=[dict(y=2026, n=len(games))] + seasons, dd=dict(ver=dd["ver"], items=dd["items"], big=dd["big"], runes=dd["runes"]),
         tours=sorted(tours, key=lambda t: t["b"] or "", reverse=True), players=sorted(players, key=lambda p: -p["g"]),
-        teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent,
+        teams=sorted(teams, key=lambda t: -t["g"]), champs=sorted(champions, key=lambda c: c["n"]), recent=recent, rec=records(games),
         patches=sorted({g["patch"] for g in games if g["patch"]}, key=lambda v: [int(x) for x in v.split(".")], reverse=True))
     (OUT / "index.json").write_text(json.dumps(index, separators=(",", ":")), encoding="utf-8")
     page = (ROOT / "src" / "app.html").read_text(encoding="utf-8").replace("https://techreign.github.io/rift-ledger/", SITE)
