@@ -58,7 +58,9 @@ def convert(path, year):
                 kp=round(100 * (k + a) / tk, 1) if tk else None, gd15=num(r["golddiffat15"]), csd15=num(r["csdiffat15"]),
                 xpd15=num(r["xpdiffat15"]), wp=num(r["wardsplaced"]), wk=num(r["wardskilled"]), cw=num(r["controlwardsbought"]),
                 dmgp=num(r["damageshare"], lambda v: round(100 * v, 1)), tdmgT=num(r["damagetotowers"]),
-                goldp=num(r["earnedgoldshare"], lambda v: round(100 * v, 1)))
+                goldp=num(r["earnedgoldshare"], lambda v: round(100 * v, 1)),
+                x2=num(r["doublekills"]), x3=num(r["triplekills"]), x4=num(r["quadrakills"]), x5=num(r["pentakills"]),
+                fb=1 if r["firstbloodkill"] == "1" else None)
             g["players"].append(dict(oid=oid(r["playerid"], r["playername"], team_id), n=r["playername"], tm=team_id,
                 c=r["champion"], role=ROLE.get(r["position"], r["position"]), side=side, k=k, d=d, a=a,
                 cs=num(r["total cs"]) if r["total cs"] else (num(r["minionkills"]) or 0) + (num(r["monsterkills"]) or 0),

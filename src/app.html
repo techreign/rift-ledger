@@ -24,9 +24,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0e1015; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a; --text: #e8eaee; --dim: #9aa1ad; --faint: #6b7280;
-  --gold: #c8aa6e; --gold2: #f0e6d2; --win: #3b6fd8; --winbg: #182338; --loss: #d8404f; --lossbg: #2c1a20;
-  --blue: #4f8df5; --red: #ef5765; --good: #36c48e; --bad: #ef5765; --r: 10px;
+  --bg: #17191f; --panel: #1f222a; --panel2: #282c36; --line: #333845; --text: #dcdfe5; --dim: #a1a7b3; --faint: #767d8a;
+  --gold: #c9ae78; --gold2: #ece2cc; --win: #5383e8; --winbg: #232d42; --loss: #d9596a; --lossbg: #36262b;
+  --blue: #5d8ee8; --red: #e0626f; --good: #4cbf91; --bad: #e0626f; --r: 10px;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 Inter, system-ui, sans-serif; }
@@ -37,7 +37,7 @@ button, select, input { font: inherit; color: inherit; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
 /* header */
-header { position: sticky; top: 0; z-index: 20; background: rgba(14,16,21,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+header { position: sticky; top: 0; z-index: 20; background: rgba(23,25,31,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
 .bar { display: flex; align-items: center; gap: 18px; height: 58px; }
 .logo { font-weight: 800; letter-spacing: .14em; font-size: 15px; color: var(--gold); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
 .logo i { width: 22px; height: 22px; border: 2px solid var(--gold); transform: rotate(45deg); display: inline-block; border-radius: 3px; position: relative; }
@@ -195,11 +195,19 @@ body.home header .search { visibility: hidden; }
 .mh { display: grid; grid-template-columns: 82px 104px 92px 116px 113px minmax(0, 1fr) 26px; align-items: center; gap: 10px; padding: 10px 12px; border-left: 6px solid var(--win); background: var(--winbg); border-radius: 8px; }
 .mh.l { border-left-color: var(--loss); background: var(--lossbg); }
 .mhs { display: grid; gap: 6px; padding: 12px; }
-.mh .res { font-weight: 800; color: #7fa7ff; font-size: 13px; }
-.mh.l .res { color: #ff7b88; }
+.mh .res { font-weight: 800; color: #86a8f0; font-size: 13px; }
+.mh.l .res { color: #ec8a96; }
 .mh .meta { font-size: 11.5px; color: var(--dim); display: grid; gap: 1px; }
 .mh .meta .tr { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mh .champ { display: flex; gap: 3px; align-items: center; }
+.mh .pt { position: relative; } .mh .pt img { border-radius: 50%; }
+.mh .pt i { position: absolute; right: -3px; bottom: -3px; min-width: 19px; height: 19px; padding: 0 3px; border-radius: 10px; background: #15171c; color: var(--text); font: 700 10.5px/19px Inter, sans-serif; text-align: center; font-style: normal; }
+.mh { row-gap: 5px; } .mh .meta, .mh .tms, .mh .vs, .mh .xbtn { grid-row: span 2; }
+.mh .tags { grid-column: 2 / span 4; display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 10px; background: #3a3f4c; color: #d7dbe3; white-space: nowrap; }
+.tag.mvp { background: #c9ae78; color: #1d1a12; } .tag.ace { background: #8e72d6; color: #fff; }
+.tag.mk { background: #c94c5c; color: #fff; } .tag.fb { background: #b5524a; color: #fff; } .tag.so { background: #2f8a67; color: #fff; }
+.tag b { font-weight: 800; margin-left: 4px; opacity: .85; }
 .mh .champ .col { display: grid; gap: 3px; }
 .mh .kda b { font-size: 15px; } .mh .kda b i { font-style: normal; color: var(--bad); }
 .mh .kda span { display: block; font-size: 12px; color: var(--dim); }
@@ -211,6 +219,14 @@ body.home header .search { visibility: hidden; }
 .mh .vs .tn { overflow: hidden; text-overflow: ellipsis; }
 .xbtn { width: 28px; height: 100%; min-height: 60px; border: 0; border-radius: 6px; background: rgba(255,255,255,.04); cursor: pointer; color: var(--dim); }
 .xbtn:hover { background: rgba(255,255,255,.1); color: var(--text); }
+.dtabs { margin: 10px 12px 0; flex-wrap: wrap; } .dtabs .pill { margin-left: auto; }
+.sct { display: grid; gap: 5px; padding: 12px 14px; } .sct > div { display: grid; grid-template-columns: 46px 26px minmax(0, 150px) 34px minmax(0, 1fr) 30px; align-items: center; gap: 8px; font-size: 12.5px; padding: 3px 6px; border-radius: 6px; }
+.sct > div.me { background: rgba(201,174,120,.12); } .sct .tag { text-align: center; }
+.scb, .tbar { height: 7px; border-radius: 4px; background: #2b303b; overflow: hidden; } .scb i, .tbar i { display: block; height: 100%; }
+.tan { padding: 12px 14px; display: grid; gap: 8px; } .tanh { display: flex; justify-content: space-between; font-size: 13px; }
+.tanr { display: grid; grid-template-columns: 62px minmax(0, 1fr) 62px; align-items: center; gap: 10px; font-size: 12.5px; } .tanr span:last-child { text-align: right; }
+.tanr small { display: block; text-align: center; color: var(--dim); font-size: 11px; margin-bottom: 3px; }
+.tbar { background: var(--red); } .tbar i { background: var(--blue); }
 .mh .items { display: grid; grid-template-columns: repeat(4, 26px); }
 /* both teams, op.gg style: two columns of champion + player, the row's player in bold */
 .mh .tms { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; font-size: 11.5px; min-width: 0; }
@@ -274,9 +290,11 @@ body.home header .search { visibility: hidden; }
 .s20c { display: grid; gap: 6px; font-size: 12.5px; }
 .s20c div { display: flex; gap: 7px; align-items: center; white-space: nowrap; }
 .s20r { display: flex; gap: 8px; align-items: flex-end; height: 64px; }
-.s20r div { width: 26px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
-.s20r i { display: block; width: 12px; background: var(--gold); border-radius: 3px; min-height: 2px; }
-.s20r span { font-size: 9.5px; color: var(--faint); font-weight: 700; }
+.s20r { height: 84px; } .s20r div { width: 26px; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.s20r b { flex: 1; width: 18px; background: #2b303b; border-radius: 3px; display: flex; align-items: flex-end; overflow: hidden; }
+.s20r i { display: block; width: 100%; background: var(--win); min-height: 2px; }
+.s20r img { opacity: .75; }
+.s20s { padding: 9px 16px; border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--dim); display: flex; align-items: center; gap: 6px; } .s20s b { color: var(--text); }
 @media (max-width: 640px) { .s20 { grid-template-columns: 1fr; } .s20r { display: none; } }
 
 /* champion builds */
@@ -434,6 +452,8 @@ const SPELL = { Dot: "Ignite", Haste: "Ghost", Boost: "Cleanse", Flash: "Flash",
 const TRINKETS = new Set([3340, 3363, 3364, 3330, 3513]);
 const ROLES = ["top", "jungle", "mid", "adc", "support"];
 const RL = { top: "TOP", jungle: "JGL", mid: "MID", adc: "BOT", support: "SUP" };
+const ROLE_ICON = Object.fromEntries(Object.entries({ top: "top", jungle: "jungle", mid: "middle", adc: "bottom", support: "utility" })
+  .map(([r, f]) => [r, `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-clash/global/default/assets/images/position-selector/positions/icon-position-${f}.png`]));
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : 0);
 const f1 = (x) => (Number.isFinite(x) ? x.toFixed(1) : "–");
 const f2 = (x) => (Number.isFinite(x) ? x.toFixed(2) : "–");
@@ -586,6 +606,17 @@ function teamsCol(r) {
   const col = (team, side) => `<div>${team.map(([id, c]) => `<a href="${link("player/" + id)}" class="${side === r.s && c === r.c ? "me" : ""}" title="${esc(pname(id))} · ${esc(cname(c))}">${champImg(c, 15)}<span>${esc(pname(id))}</span></a>`).join("")}</div>`;
   return `<div class="tms">${r.ln.map(col).join("")}</div>`;
 }
+// op.gg-style badges: rank in the game (MVP/ACE = best on the winning/losing team), multikill, first blood, solo kills
+const ord = (n) => n + (n % 10 === 1 && n !== 11 ? "st" : n % 10 === 2 && n !== 12 ? "nd" : n % 10 === 3 && n !== 13 ? "rd" : "th");
+const MK = { 2: "Double kill", 3: "Triple kill", 4: "Quadra kill", 5: "Penta kill" };
+function rowTags(r) {
+  const t = [];
+  if (r.rk) t.push(r.tb ? `<span class="tag ${r.w ? "mvp" : "ace"}" title="Best on ${r.w ? "the winning" : "the losing"} team">${r.w ? "MVP" : "ACE"}</span>` : `<span class="tag" title="Rank by prostats score among the 10 players">${ord(r.rk)}</span>`);
+  if (r.mk) t.push(`<span class="tag mk">${MK[r.mk]}</span>`);
+  if (r.fb) t.push(`<span class="tag fb">First blood</span>`);
+  if (r.so) t.push(`<span class="tag so">${r.so > 1 ? r.so + " solo kills" : "Solo kill"}</span>`);
+  return t.length ? `<div class="tags">${t.join("")}</div>` : "";
+}
 // ---------------- match history row (shared by player + champion pages)
 function mhRow(r, opts = {}) {
   const it = r.it || [], items = it.filter((i) => !TRINKETS.has(i)), trinket = it.find((i) => TRINKETS.has(i));
@@ -594,12 +625,12 @@ function mhRow(r, opts = {}) {
   const who = opts.showPlayer ? `<div><a class="tn" href="${link("player/" + r.p)}"><b>${esc(r.pn)}</b></a><span class="faint">· ${esc(r.tn)}</span></div>` : `<div><span class="role">${RL[r.r] || ""}</span>${tLink(r.tm, r.tn)}</div>`;
   return `<div class="mh ${r.w ? "w" : "l"}" data-t="${r.t}" data-g="${r.g}" data-p="${r.p ?? ""}">
     <div class="meta"><span class="res">${r.w ? "Victory" : "Defeat"}</span><span class="tr" title="${esc(S.tours[r.t]?.n)}">${esc(S.tours[r.t]?.lg || "")}</span><span>${ago(r.dt)}</span><span>${mmss(r.len)} · ${esc(r.pa || "")}</span></div>
-    <div class="champ">${champImg(r.c, 48)}<div class="col">${(r.sp || []).map((s) => spellImg(s)).join("")}</div><div class="col">${runeImg(r.ks, 24, "background:#000;border-radius:50%")}${runeImg(r.sub, 18, "margin:2px")}</div></div>
-    <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.lvl ? `<span>Level ${r.lvl}</span>` : ""}</div>
+    <div class="champ"><span class="pt">${champImg(r.c, 48)}${r.lvl ? `<i>${r.lvl}</i>` : ""}</span><div class="col">${(r.sp || []).map((s) => spellImg(s)).join("")}</div><div class="col">${runeImg(r.ks, 24, "background:#000;border-radius:50%")}${runeImg(r.sub, 18, "margin:2px")}</div></div>
+    <div class="kda"><b>${r.k} / <i>${r.d}</i> / ${r.a}</b><span class="${kdaCls(ratio)}">${r.d ? f2(ratio) + " KDA" : "Perfect"}</span>${r.sc != null ? `<span>Score ${f1(r.sc)}</span>` : ""}</div>
     <div class="st"><span>CS ${r.cs} (${f1(r.cs / m)})</span><span>KP ${r.kp != null ? Math.round(r.kp) + "%" : "–"}</span><span>DMG ${kfmt(r.dmg)}</span><span>GD@15 <b class="${r.gd15 > 0 ? "good" : r.gd15 < 0 ? "bad" : ""}">${r.gd15 > 0 ? "+" : ""}${r.gd15 ?? "–"}</b></span></div>
     <div class="items">${it.length ? items.slice(0, 6).map((i) => itemImg(i)).join("") + itemImg(trinket) : ""}</div>
     ${r.ln && !opts.showPlayer ? teamsCol(r) : `<div class="vs">${who}<div><span class="faint">vs</span>${r.oc ? champImg(r.oc, 18, "ci r") : ""}${tLink(r.op, r.on, 16)}</div></div>`}
-    <button class="xbtn" title="Full scoreboard" aria-label="Show full scoreboard">▾</button>
+    <button class="xbtn" title="Game details" aria-label="Show game details">▾</button>${rowTags(r)}
   </div>`;
 }
 function wireMh(el, focusPid) {
@@ -607,10 +638,42 @@ function wireMh(el, focusPid) {
     const row = b.closest(".mh"), next = row.nextElementSibling;
     if (next && next.classList.contains("detail")) { next.remove(); b.textContent = "▾"; return; }
     const d = document.createElement("div"); d.className = "detail"; d.innerHTML = `<div class="loading">Loading game…</div>`; row.after(d); b.textContent = "▴";
-    const shard = await shardOf(row.dataset.t); d.innerHTML = scoreboard(shard[row.dataset.g], row.dataset.p || focusPid) + `<div style="padding:8px 14px;text-align:right"><a class="pill" href="${gLink(row.dataset.t, row.dataset.g)}">Open game page →</a></div>`;
+    const shard = await shardOf(row.dataset.t), g = shard[row.dataset.g], focus = row.dataset.p || focusPid;
+    const tabs = [["ov", "Overview"], ["sc", "Score"], ["ta", "Team analysis"], ...(g.x ? [["bd", "Build"]] : [])];
+    d.innerHTML = `<div class="seg dtabs">${tabs.map(([k, n], i) => `<button data-k="${k}" class="${i ? "" : "on"}">${n}</button>`).join("")}<a class="pill" href="${gLink(row.dataset.t, row.dataset.g)}">Game page →</a></div><div class="dbody"></div>`;
+    const body = $(".dbody", d);
+    const show = async (k) => {
+      d.querySelectorAll(".dtabs button").forEach((x) => x.classList.toggle("on", x.dataset.k === k));
+      if (k === "ov") body.innerHTML = scoreboard(g, focus);
+      else if (k === "sc") body.innerHTML = scoreTab(g, focus);
+      else if (k === "ta") body.innerHTML = teamAnalysis(g);
+      else { body.innerHTML = `<div class="loading">Loading build…</div>`; const x = await J(`x/${g.id}.json`); const p = g.players.find((q) => String(q.pid) === String(focus)) || g.players[0]; body.innerHTML = playerBuild(p, x.b[p.pid]); }
+    };
+    $(".dtabs", d).onclick = (e) => { const b2 = e.target.closest("button"); if (b2) show(b2.dataset.k); };
+    show("ov");
   }));
 }
 
+// detail tab: every player's prostats score, ranked, with their team colour
+function scoreTab(g, focus) {
+  if (g.players[0].sc == null) return `<div class="empty">No scores for this game.</div>`;
+  const ps = [...g.players].sort((a, b) => a.rk - b.rk), win = g.teams.findIndex((t) => t.win);
+  return `<div class="sct">${ps.map((p) => `<div class="${String(p.pid) === String(focus) ? "me" : ""}"><span class="tag ${p.tb ? (p.side === win ? "mvp" : "ace") : ""}">${p.tb ? (p.side === win ? "MVP" : "ACE") : ord(p.rk)}</span>
+    ${champImg(p.ci, 26)}<a href="${link("player/" + p.pid)}">${esc(p.n)}</a><span class="faint">${RL[p.role] || ""}</span>
+    <div class="scb"><i style="width:${p.sc * 10}%;background:${p.side ? "var(--red)" : "var(--blue)"}"></i></div><b>${f1(p.sc)}</b></div>`).join("")}
+    <p class="faint" style="font-size:11.5px;margin:8px 2px 0">prostats score (0–10): kill participation, KDA, damage share, gold lead at 15 and vision per minute, plus a bump for the winning side.</p></div>`;
+}
+// detail tab: the two teams side by side, op.gg "Team analysis" style
+function teamAnalysis(g) {
+  const sum = (side, f) => g.players.filter((p) => p.side === side).reduce((s, p) => s + (f(p) || 0), 0);
+  const rows = [["Kills", (s) => g.teams[s].k], ["Gold", (s) => g.teams[s].gold ?? sum(s, (p) => p.st?.gold)], ["Damage to champions", (s) => sum(s, (p) => p.st?.dmg)],
+    ["CS", (s) => sum(s, (p) => p.cs)], ["Wards placed", (s) => sum(s, (p) => p.st?.wp)], ["Vision score", (s) => sum(s, (p) => p.st?.vs)],
+    ["Towers", (s) => g.teams[s].tw], ["Dragons", (s) => g.teams[s].dr ?? (g.teams[s].obj || []).filter((o) => /Drake|dragon/i.test(o)).length], ["Barons", (s) => g.teams[s].bn]];
+  return `<div class="tan"><div class="tanh"><b>${tLink(g.teams[0].id, g.teams[0].name, 18)}</b><b>${tLink(g.teams[1].id, g.teams[1].name, 18)}</b></div>${rows.map(([n, f]) => {
+    const a = f(0) || 0, b = f(1) || 0; if (!a && !b) return "";
+    const pa = (100 * a) / (a + b || 1);
+    return `<div class="tanr"><span>${kfmt(a)}</span><div><small>${n}</small><div class="tbar"><i style="width:${pa}%"></i></div></div><span>${kfmt(b)}</span></div>`; }).join("")}</div>`;
+}
 // ---------------- scoreboard
 function scoreboard(g, focus) {
   const maxD = Math.max(...g.players.map((p) => p.st?.dmg || 0), 1);
@@ -974,11 +1037,13 @@ function summary20(rows) {
   const r20 = rows.slice(0, 20); if (!r20.length) return "";
   const a = agg(r20), n = r20.length;
   const champs = [...groupBy(r20, "c")].map(([c, rs]) => ({ c, ...agg(rs) })).sort((x, y) => y.g - x.g).slice(0, 3);
-  const roles = groupBy(r20, "r");
+  const roles = groupBy(r20, "r"), sc = r20.filter((r) => r.sc != null);
+  const avg = sc.length ? sc.reduce((s, r) => s + r.sc, 0) / sc.length : null, mvp = sc.filter((r) => r.tb && r.w).length, ace = sc.filter((r) => r.tb && !r.w).length;
   return `<div class="s20"><div class="s20a">${donut(a.wr)}<div><div class="faint" style="font-size:12px">${n}G ${a.w}W ${n - a.w}L</div>
       <b style="font-size:15px">${f1(a.k / n)} / <span class="bad">${f1(a.d / n)}</span> / ${f1(a.a / n)}</b><div><b class="${kdaCls(a.kda)}">${f2(a.kda)}:1</b> <span class="faint">· KP ${Number.isFinite(a.kpa) ? Math.round(a.kpa) + "%" : "–"}</span></div></div></div>
-    <div class="s20c">${champs.map((x) => `<div>${champImg(x.c, 26, "ci r")}<span class="${wrCls(x.wr)}">${x.wr}%</span><span class="faint">(${x.w}W ${x.g - x.w}L)</span><b class="${kdaCls(x.kda)}">${f2(x.kda)} KDA</b></div>`).join("")}</div>
-    <div class="s20r">${ROLES.map((r) => `<div title="${RL[r]}"><i style="height:${(100 * (roles.get(r)?.length || 0)) / n}%"></i><span>${RL[r]}</span></div>`).join("")}</div></div>`;
+    <div class="s20c"><span class="faint">Recent ${n} games played champions</span>${champs.map((x) => `<div>${champImg(x.c, 26, "ci r")}<span class="${wrCls(x.wr)}">${x.wr}%</span><span class="faint">(${x.w}W ${x.g - x.w}L)</span><b class="${kdaCls(x.kda)}">${f2(x.kda)} KDA</b></div>`).join("")}</div>
+    <div class="s20r">${ROLES.map((r) => `<div title="${RL[r]} · ${roles.get(r)?.length || 0} games"><b><i style="height:${(100 * (roles.get(r)?.length || 0)) / n}%"></i></b><img src="${ROLE_ICON[r]}" width="16" height="16" alt="${RL[r]}" loading="lazy"></div>`).join("")}</div></div>
+    ${avg != null ? `<div class="s20s">Average prostats score <b>${f1(avg)}</b>${mvp ? ` · <span class="tag mvp">MVP</span> ×${mvp}` : ""}${ace ? ` · <span class="tag ace">ACE</span> ×${ace}` : ""}</div>` : ""}`;
 }
 function formGraph(rows) {
   const gs = rows.slice(0, 60).reverse(); if (gs.length < 2) return `<div class="empty">Not enough games.</div>`;

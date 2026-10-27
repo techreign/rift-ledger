@@ -122,6 +122,34 @@ def gz(path, obj):
     with gzip.open(path, "wt", encoding="utf-8", compresslevel=6) as f: json.dump(obj, f, separators=(",", ":"))
 
 ROLES = ["top", "jungle", "mid", "adc", "support"]
+def score_game(g):
+    """prostats score (0-10) and in-game rank for all ten players, op.gg-style. Our own blend, not op.gg's formula:
+    kill participation, KDA, damage share, gold lead at 15, vision per minute, plus a bump for the winners. Sets p["sc"]
+    (score), p["rk"] (1-10 in the game) and p["tb"] (1 = best on their team: MVP on the winning side, ACE on the losing)."""
+    mins = max(g["len"] / 60, 1)
+    win = {s: g["teams"][s]["win"] for s in (0, 1)}
+    raw = []
+    for p in g["players"]:
+        st = p.get("st") or {}
+        kda = min((p["k"] + p["a"]) / max(p["d"], 1), 10) / 10
+        kp = min((st.get("kp") or 0) / 100, 1)
+        dmg = min((st.get("dmgp") or 0) / 35, 1)
+        gd = max(-1, min((st.get("gd15") or 0) / 2000, 1))
+        vis = min((st.get("vs") or 0) / mins / 3, 1)
+        raw.append(2.4 * kda + 2.2 * kp + 2.0 * dmg + 1.2 * gd + 0.9 * vis + (1.3 if win[p["side"]] else 0))
+    for p, s in zip(g["players"], raw): p["sc"] = round(max(0, min(10, s * 10 / 8)), 1)
+    for i, p in enumerate(sorted(g["players"], key=lambda p: -p["sc"])): p["rk"] = i + 1
+    for side in (0, 1):
+        best = min((p for p in g["players"] if p["side"] == side), key=lambda p: p["rk"], default=None)
+        for p in g["players"]:
+            if p["side"] == side: p["tb"] = 1 if p is best else 0
+
+def tags(p):
+    """badge data for a match-history row: score, rank, best-on-team, top multikill, first blood, solo kills"""
+    st = p.get("st") or {}
+    mk = next((n for n in (5, 4, 3, 2) if st.get(f"x{n}")), None)
+    return {k: v for k, v in dict(sc=p.get("sc"), rk=p.get("rk"), tb=p.get("tb") or None, mk=mk, fb=st.get("fb"), so=st.get("solo") or None).items() if v is not None}
+
 def lineups(g):
     """both teams for a player's match-history row (op.gg style): [[blue [pid, champion] x5], [red ...]], role order"""
     order = lambda p: ROLES.index(p["role"]) if p["role"] in ROLES else 9
@@ -232,7 +260,7 @@ def lifetime(cid, cname, team_of, anyp, gol_players, gol_teams):
             team_games[tm["id"]].append(dict(g=g["id"], t=t, dt=g["date"], s=side, tn=tm["name"], w=int(tm["win"]), op=opp["id"], on=opp["name"], len=g["len"],
                 k=tm["k"], ok=opp["k"], pk=[p["ci"] for p in mine], opk=[p["ci"] for p in g["players"] if p["side"] != side], bn=tm["bi"],
                 ro=[[p["pid"], p["n"], p["role"]] for p in mine]))
-        ln = lineups(g)
+        ln = lineups(g); score_game(g)
         for p in g["players"]:
             st, tm, opp = p["st"], g["teams"][p["side"]], g["teams"][1 - p["side"]]
             lane = next((q for q in g["players"] if q["side"] != p["side"] and q["role"] == p["role"]), None)
@@ -241,7 +269,7 @@ def lifetime(cid, cname, team_of, anyp, gol_players, gol_teams):
                 k=p["k"], d=p["d"], a=p["a"], cs=p["cs"], len=g["len"], gold=st.get("gold"), dmg=st.get("dmg"), kp=st.get("kp"), vs=st.get("vs"),
                 gd15=st.get("gd15"), csd15=st.get("csd15"), tm=tm["id"], tn=tm["name"], op=opp["id"], on=opp["name"],
                 oc=lane["ci"] if lane else None, opp=lane["pid"] if lane else None))
-            hist[p["pid"]].append(dict(row, mt=[q["pid"] for q in mates], ln=ln))
+            hist[p["pid"]].append(dict(row, mt=[q["pid"] for q in mates], ln=ln, **tags(p)))
             champ_rows[p["ci"]].append(dict(row, p=p["pid"], pn=p["n"], al=[q["ci"] for q in mates]))
             champ_t[p["ci"]][t][0] += 1; champ_t[p["ci"]][t][1] += int(tm["win"])
             if p["pid"] not in pinfo:  # games are newest first: latest name and team
@@ -373,7 +401,7 @@ def main():
             team_games[t["id"]].append(dict(g=g["id"], t=g["t"], dt=g["date"], s=side, w=int(t["win"]), op=opp["id"], on=opp["name"], len=g["len"],
                 k=t["k"], ok=opp["k"], pk=[p["ci"] for p in mine], opk=[p["ci"] for p in g["players"] if p["side"] != side], bn=t["bi"],
                 ro=[[p["pid"], p["n"], p["role"]] for p in mine]))
-        ln = lineups(g)
+        ln = lineups(g); score_game(g)
         for p in g["players"]:
             st = p.get("st", {}); t = g["teams"][p["side"]]; opp = g["teams"][1 - p["side"]]
             lane = next((q for q in g["players"] if q["side"] != p["side"] and q["role"] == p["role"]), None)
@@ -383,7 +411,7 @@ def main():
                 gd15=st.get("gd15"), csd15=st.get("csd15"), it=p["it"], ks=p["ks"], sub=p["sub"], sp=p["sp"], tm=t["id"], tn=t["name"],
                 op=opp["id"], on=opp["name"], oc=lane["ci"] if lane else None, lvl=st.get("lvl"),
                 opp=lane["pid"] if lane else None, mt=[q["pid"] for q in mates], x=g["x"])
-            hist[p["pid"]].append(dict(row, ln=ln))
+            hist[p["pid"]].append(dict(row, ln=ln, **tags(p)))
             champ_t[p["ci"]][g["t"]][0] += 1; champ_t[p["ci"]][g["t"]][1] += int(t["win"])
             crow = dict(row, p=p["pid"], pn=p["n"], al=[q["ci"] for q in mates])
             del crow["mt"]
