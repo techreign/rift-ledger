@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-27 (Dota 2 section, game strip, portraits)
+Last updated: 2026-10-28 (front page redesign)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -96,3 +96,5 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Launch blockers (all user-side): buy prostats.gg → DNS + Pages custom domain → flip SITE in build.py → AdSense
   application → ADSENSE/AD_SLOT → Search Console Domain property + Change of Address.
 - Next builds: Valorant / CS2 from terms-OK sources (Riot esports API, Liquipedia CC-BY-SA; not VLR/HLTV).
+- 2026-10-28: front page has no stat tables any more: featured event (latest INTL/major, standings), stars per role,
+  meta splash tiles, season records + pentakills (index `rec`, records() in build.py), latest results. Dota 2873/5933.
