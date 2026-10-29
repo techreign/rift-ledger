@@ -42,6 +42,10 @@ jobs:
         if: github.event_name != 'push'
         continue-on-error: true
         run: python pipeline/dota.py --minutes 15
+      - name: VALORANT VCT (Liquipedia, only changed pages; Riot logos + VODs), time-boxed
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: python pipeline/val.py --minutes 15
       - name: Commit new games
         if: github.event_name != 'push'
         run: |

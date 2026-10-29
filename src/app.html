@@ -547,7 +547,7 @@ footer p { margin: 4px 0; }
 </style>
 </head>
 <body>
-<header><div class="gbar"><div class="wrap"><a class="on" href="#/">League of Legends</a><a href="dota/">Dota 2</a></div></div><div class="wrap bar">
+<header><div class="gbar"><div class="wrap"><a class="on" href="#/">League of Legends</a><a href="dota/">Dota 2</a><a href="val/">VALORANT</a></div></div><div class="wrap bar">
   <a class="logo" href="#/"><i></i><span>PROSTATS.GG</span></a>
   <div class="search hs">
     <select id="qlg" aria-label="Search in league"><option value="">All</option></select>
@@ -1819,7 +1819,7 @@ function notFound(kind) {
     const a = e.target.closest("a[href]");
     if (!a || e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target || a.hasAttribute("download")) return;
     const u = new URL(a.href, location.href);
-    if (u.origin !== location.origin || !u.pathname.startsWith(BASE) || u.pathname.startsWith(BASE + "dota/") || /\.[a-z0-9]+$/i.test(u.pathname) || (u.hash && u.pathname === location.pathname)) return;
+    if (u.origin !== location.origin || !u.pathname.startsWith(BASE) || u.pathname.startsWith(BASE + "dota/") || u.pathname.startsWith(BASE + "val/") || /\.[a-z0-9]+$/i.test(u.pathname) || (u.hash && u.pathname === location.pathname)) return;
     e.preventDefault(); if (u.href !== location.href) history.pushState(null, "", u.href); route();
   });
   // code that still sets location.hash = "#/..." lands here; swap the hash for the path in place

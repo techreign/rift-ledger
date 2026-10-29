@@ -12,7 +12,7 @@ Outputs (all fetched lazily by the app):
                           (their g/ shards sit with the rest); only fetched when a viewer picks a past season
 """
 import gzip, json, os, re, shutil, sys, time, unicodedata, urllib.request
-import seo, vods, dota_build
+import seo, vods, dota_build, val_build
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -530,8 +530,9 @@ def main():
     for d in ("player", "team", "champion", "t", "privacy"): shutil.rmtree(DIST / d, ignore_errors=True)
     seo.write_pages(DIST, page, SITE)  # index.html, 404.html, app.js/css, a page per player/team/champion/tournament, sitemap
     dota_build.build(DIST, SITE, ads=page[page.index("<head>"):page.index("</head>")])  # dist/dota: the Dota 2 section
+    val_build.build(DIST, SITE, ads=page[page.index("<head>"):page.index("</head>")])  # dist/val: VALORANT (VCT)
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}sitemap.xml\n"
-        + (f"Sitemap: {SITE}dota/sitemap.xml\n" if (DIST / "dota" / "sitemap.xml").exists() else ""), encoding="utf-8")
+        + "".join(f"Sitemap: {SITE}{g}/sitemap.xml\n" for g in ("dota", "val") if (DIST / g / "sitemap.xml").exists()), encoding="utf-8")
     unmatched = sorted(k for k, v in champ_id.items() if v not in {x[0] for x in dd["champs"].values()})
     if unmatched: print("champions not in Data Dragon:", unmatched, file=sys.stderr)
     size = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file()) / 1e6

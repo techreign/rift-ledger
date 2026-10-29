@@ -197,9 +197,10 @@ def write_pages(dist, page, site):
     render("", "prostats.gg – Pro League of Legends Stats, Match History & Tier List",
            f"op.gg for pro play: match histories, champion pools, builds, tier list and leaderboards for every pro LoL game since {first}.", home)
     nf = APP.sub(lambda m: m[1] + '<div class="loading">Loading…</div>' + m[2], shell, count=1)
-    dota = base + "dota/"
-    nf = nf.replace("</head>", '<script>if(location.pathname.indexOf("' + dota + '")===0&&location.pathname.length>' + str(len(dota)) + ')location.replace("' + dota + '#/"'
-                    '+location.pathname.slice(' + str(len(dota)) + ').replace(/[/]$/,"")+location.search)</script>\n</head>', 1)
+    for g in ("dota/", "val/"):  # deep links into the other games' apps go to <game>/#/<route>
+        sub = base + g
+        nf = nf.replace("</head>", '<script>if(location.pathname.indexOf("' + sub + '")===0&&location.pathname.length>' + str(len(sub)) + ')location.replace("' + sub + '#/"'
+                        '+location.pathname.slice(' + str(len(sub)) + ').replace(/[/]$/,"")+location.search)</script>\n</head>', 1)
     (dist / "404.html").write_text(nf, encoding="utf-8")
 
     sm = "".join(f"<url><loc>{e(site + u)}</loc></url>" for u in [""] + urls)

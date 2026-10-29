@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-28 (front page redesign)
+Last updated: 2026-10-28 (VALORANT section)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -98,3 +98,13 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - Next builds: Valorant / CS2 from terms-OK sources (Riot esports API, Liquipedia CC-BY-SA; not VLR/HLTV).
 - 2026-10-28: front page has no stat tables any more: featured event (latest INTL/major, standings), stars per role,
   meta splash tiles, season records + pentakills (index `rec`, records() in build.py), latest results. Dota 2873/5933.
+
+## 2026-10-28: VALORANT section (/val/)
+- pipeline/val.py: Liquipedia (CC-BY-SA 3.0; UA with contact, 2 s per call, action=parse 1 per 30 s, only re-parses pages whose
+  lastrevid changed, data/val/revs.json) for VCT 2026 tier 1 (TOUR_RE: 4 leagues x Kickoff/Stage 1/Stage 2, EMEA Clash, both
+  Masters, Champions). Match popups -> data/val/m (maps, round halves atk/def, both comps); /Statistics -> data/val/s (per-player
+  event totals: ACS, ADR, K/D/A, FK/FD, KAST, agents; table repeats per stage, first = whole event). Riot VALORANT esports API
+  (same key as lolesports, needs &sport=val) -> data/val/riot.json (team logos, per-map YouTube VODs). valorant-api.com art.
+- No per-map player stats exist in either source, so player pages show event lines + the team's series.
+- pipeline/val_build.py -> dist/val (src/val.html SPA, shares app.css); footer carries the CC-BY-SA notice. Game strip on all
+  three games; 404.html redirects val/ deep links like dota/.
