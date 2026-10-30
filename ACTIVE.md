@@ -1,6 +1,6 @@
 # Rift Ledger — ACTIVE
 
-Last updated: 2026-10-28 (VALORANT section)
+Last updated: 2026-10-29 (Counter-Strike 2 section)
 
 ## Goal
 op.gg-style site for pro play: every 2026 pro game (all leagues on gol.gg, ~8.3k games). Live at
@@ -108,3 +108,17 @@ https://techreign.github.io/rift-ledger/ (repo techreign/rift-ledger), auto-refr
 - No per-map player stats exist in either source, so player pages show event lines + the team's series.
 - pipeline/val_build.py -> dist/val (src/val.html SPA, shares app.css); footer carries the CC-BY-SA notice. Game strip on all
   three games; 404.html redirects val/ deep links like dota/.
+
+## 2026-10-29: Counter-Strike 2 section (/cs/)
+- pipeline/cs.py: Liquipedia counterstrike (same rules as val.py; it imports val's http/slug/txt). "S-Tier Tournaments" page ->
+  data/cs/tours.json (2026 rows, not Cancelled). Each event page + Stage N / Playoffs / Online Stage subpages (SUB_RE; qualifiers
+  skipped) -> data/cs/m/<slug>.json: match popups (maps, CT/T halves + OT, per-map YouTube VOD, HLTV match id), participant
+  rosters (coaches dropped), prize-pool placements. Valve VRS (GitHub ValveSoftware/counter-strike_regional_standings, latest
+  global file, refreshed daily) -> data/cs/vrs.json; matched to our teams by roster overlap (>=3 players), else by name.
+- Liquipedia terms forbid automated access to non-API URLs, so no Liquipedia images: team / event / player badges are
+  coloured monograms, maps are colour-scheme tiles. HLTV is never fetched; series pages only link out to it for player stats.
+- No per-player stats: player pages = events they were rostered at, placement, their team's series/map/round record there.
+- pipeline/cs_build.py -> dist/cs (src/cs.html). val_build.write_shell(dist, site, ads, game, pages) is now shared by val+cs.
+  Home: live/next events, latest finished event + placements/prize, VRS top 10, trophy cabinet, map tiles (most played,
+  most CT/T-sided), records (biggest halftime comeback, longest map, 13-0s, OT count), latest results.
+- Workflow: cs.py --minutes 15 after val.py. Game strip has 4 games; 404 redirects cs/ deep links.

@@ -1,0 +1,222 @@
+[
+{
+"page": "PGL/2026/Singapore",
+"name": "PGL Major Singapore 2026",
+"dates": "Nov 24 – Dec 13, 2026",
+"prize": "$1,250,000",
+"loc": "Kallang",
+"n": "32",
+"win": null,
+"second": null
+},
+{
+"page": "BLAST/Rivals/2026/Fall",
+"name": "BLAST Rivals Fall 2026",
+"dates": "Nov 11–15, 2026",
+"prize": "$1,000,000",
+"loc": "Chek Lap Kok",
+"n": "8",
+"win": null,
+"second": null
+},
+{
+"page": "Intel Extreme Masters/2026/Beijing",
+"name": "Intel Extreme Masters Beijing 2026",
+"dates": "Nov 02–08, 2026",
+"prize": "$1,250,000",
+"loc": "Beijing",
+"n": "16",
+"win": null,
+"second": null
+},
+{
+"page": "PGL/2026/Masters",
+"name": "PGL Masters Bucharest 2026",
+"dates": "Oct 24–31, 2026",
+"prize": "$1,250,000",
+"loc": "Bucharest",
+"n": "16",
+"win": null,
+"second": null
+},
+{
+"page": "Thunderpick/World Championship/2026",
+"name": "Thunderpick World Championship 2026",
+"dates": "Oct 14–18, 2026",
+"prize": "$1,000,000",
+"loc": "Attard",
+"n": "8",
+"win": "FURIA",
+"second": "BetBoom Team"
+},
+{
+"page": "ESL/Pro League/Season 24",
+"name": "ESL Pro League Season 24",
+"dates": "Oct 03–11, 2026",
+"prize": "$1,000,000",
+"loc": "Katowice",
+"n": "16",
+"win": "Team Vitality",
+"second": "MOUZ"
+},
+{
+"page": "StarLadder/StarSeries/2026/Fall",
+"name": "StarLadder StarSeries Fall 2026",
+"dates": "Sep 17–20, 2026",
+"prize": "$500,000",
+"loc": "Barcelona",
+"n": "8",
+"win": "Team Vitality",
+"second": "Aurora Gaming"
+},
+{
+"page": "FISSURE/Playground/3",
+"name": "FISSURE Playground #3",
+"dates": "Sep 08–13, 2026",
+"prize": "$1,000,000",
+"loc": "Suzhou",
+"n": "16",
+"win": "Legacy",
+"second": "G2 Esports"
+},
+{
+"page": "BLAST/Open/2026/Fall",
+"name": "BLAST Open Fall 2026",
+"dates": "Aug 26 – Sep 06, 2026",
+"prize": "$1,100,000",
+"loc": "Porto Copenhagen",
+"n": "16",
+"win": "Team Spirit",
+"second": "MOUZ"
+},
+{
+"page": "Esports World Cup/2026",
+"name": "Esports World Cup 2026",
+"dates": "Aug 12–23, 2026",
+"prize": "$2,000,000",
+"loc": "Paris",
+"n": "32",
+"win": "Team Spirit",
+"second": "FUT Esports"
+},
+{
+"page": "BLAST/Bounty/2026/Summer",
+"name": "BLAST Bounty Summer 2026",
+"dates": "Jul 30 – Aug 02, 2026",
+"prize": "$740,000",
+"loc": "Attard",
+"n": "8",
+"win": "MOUZ",
+"second": "Team Spirit"
+},
+{
+"page": "Intel Extreme Masters/2026/Cologne",
+"name": "Intel Extreme Masters Cologne Major 2026",
+"dates": "Jun 02–21, 2026",
+"prize": "$1,250,000",
+"loc": "Cologne",
+"n": "32",
+"win": "Team Falcons",
+"second": "FURIA"
+},
+{
+"page": "CS Asia Championships/2026",
+"name": "CS Asia Championships 2026",
+"dates": "May 20–24, 2026",
+"prize": "$1,000,000",
+"loc": "Shanghai",
+"n": "16",
+"win": "Legacy",
+"second": "Team Falcons"
+},
+{
+"page": "Intel Extreme Masters/2026/Atlanta",
+"name": "Intel Extreme Masters Atlanta 2026",
+"dates": "May 11–17, 2026",
+"prize": "$1,000,000",
+"loc": "Atlanta",
+"n": "16",
+"win": "Natus Vincere",
+"second": "GamerLegion"
+},
+{
+"page": "PGL/2026/Astana",
+"name": "PGL Astana 2026",
+"dates": "May 09–17, 2026",
+"prize": "$1,600,000",
+"loc": "Astana",
+"n": "16",
+"win": "Team Spirit",
+"second": "Team Falcons"
+},
+{
+"page": "BLAST/Rivals/2026/Spring",
+"name": "BLAST Rivals Spring 2026",
+"dates": "Apr 29 – May 03, 2026",
+"prize": "$1,000,000",
+"loc": "Fort Worth",
+"n": "8",
+"win": "Team Vitality",
+"second": "Natus Vincere"
+},
+{
+"page": "Intel Extreme Masters/2026/Rio",
+"name": "Intel Extreme Masters Rio 2026",
+"dates": "Apr 13–19, 2026",
+"prize": "$1,000,000",
+"loc": "Rio de Janeiro",
+"n": "16",
+"win": "Team Vitality",
+"second": "Team Spirit"
+},
+{
+"page": "BLAST/Open/2026/Spring",
+"name": "BLAST Open Spring 2026",
+"dates": "Mar 18–29, 2026",
+"prize": "$1,100,000",
+"loc": "Rotterdam Copenhagen",
+"n": "16",
+"win": "Team Vitality",
+"second": "Natus Vincere"
+},
+{
+"page": "ESL/Pro League/Season 23",
+"name": "ESL Pro League Season 23",
+"dates": "Mar 13–15, 2026",
+"prize": "$776,000",
+"loc": "Stockholm",
+"n": "8",
+"win": "Natus Vincere",
+"second": "Aurora Gaming"
+},
+{
+"page": "PGL/2026/Cluj-Napoca",
+"name": "PGL Cluj-Napoca 2026",
+"dates": "Feb 14–22, 2026",
+"prize": "$1,250,000",
+"loc": "Cluj-Napoca",
+"n": "16",
+"win": "Team Vitality",
+"second": "PARIVISION"
+},
+{
+"page": "Intel Extreme Masters/2026/Kraków",
+"name": "Intel Extreme Masters Kraków 2026",
+"dates": "Jan 28 – Feb 08, 2026",
+"prize": "$1,250,000",
+"loc": "Kraków",
+"n": "24",
+"win": "Team Vitality",
+"second": "FURIA"
+},
+{
+"page": "BLAST/Bounty/2026/Winter",
+"name": "BLAST Bounty Winter 2026",
+"dates": "Jan 22–25, 2026",
+"prize": "$772,500",
+"loc": "Attard",
+"n": "8",
+"win": "PARIVISION",
+"second": "Team Falcons"
+}
+]

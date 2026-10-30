@@ -176,35 +176,42 @@ def build(dist, site, ads=""):
     write_pages(dist, site, index, ads)
     print(f"val: {len(tours)} tournaments, {len(series)} series, {total_tm // 2} maps, {len(players)} players, {len(tl)} teams")
 
-def write_pages(dist, site, idx, ads=""):
-    src = (ROOT / "src" / "val.html").read_text(encoding="utf-8")
+def write_shell(dist, site, ads, game, pages):
+    """split src/<game>.html into <game>.js/.css (+ the LoL stylesheet), then write a static page per
+    (path, title, description, body) with the SPA shell around it, and <game>/sitemap.xml"""
+    src = (ROOT / "src" / f"{game}.html").read_text(encoding="utf-8")
     base = re.sub(r"^https?://[^/]+", "", site) or "/"
     js_a, js_b = src.index("<script>"), src.index("</script>")
     css_a, css_b = src.index("<style>"), src.index("</style>")
     js, css = src[js_a + 8:js_b], src[css_a + 7:css_b]
     v = hashlib.md5((js + css).encode()).hexdigest()[:10]
     lol_css = (dist / "app.css").read_text(encoding="utf-8")
-    (dist / "val" / "val.js").write_text(js, encoding="utf-8")
-    (dist / "val" / "val.css").write_text(lol_css + "\n" + css, encoding="utf-8")
-    shell = (src[:css_a] + f'<link rel="stylesheet" href="val.css?v={v}">' + src[css_b + 8:js_a] + f'<script src="val.js?v={v}"></script>' + src[js_b + 9:])
+    (dist / game).mkdir(parents=True, exist_ok=True)
+    (dist / game / f"{game}.js").write_text(js, encoding="utf-8")
+    (dist / game / f"{game}.css").write_text(lol_css + "\n" + css, encoding="utf-8")
+    shell = (src[:css_a] + f'<link rel="stylesheet" href="{game}.css?v={v}">' + src[css_b + 8:js_a] + f'<script src="{game}.js?v={v}"></script>' + src[js_b + 9:])
     shell = shell.replace("https://techreign.github.io/rift-ledger/", site)
-    shell = shell.replace('<meta charset="utf-8">', f'<meta charset="utf-8">\n<base href="{base}val/">', 1)
+    shell = shell.replace('<meta charset="utf-8">', f'<meta charset="utf-8">\n<base href="{base}{game}/">', 1)
     tags = re.findall(r'<meta name="(?:google-adsense-account|ad-slot)"[^>]*>|<script async src="https://pagead2[^>]*></script>', ads)
     shell = shell.replace("</head>", "".join(tags) + "\n</head>", 1)
     APP = re.compile(r'(<div class="wrap" id="app">).*?(</div></main>)', re.S)
     urls = []
-
-    def render(path, title, desc, body):
+    for path, title, desc, body in pages:
         h = re.sub(r"<title>.*?</title>", lambda m: f"<title>{e(title)}</title>", shell, count=1)
         for pat, val in ((r'(<meta name="description" content=")[^"]*', desc), (r'(<meta property="og:title" content=")[^"]*', title),
-                         (r'(<meta property="og:description" content=")[^"]*', desc), (r'(<link rel="canonical" href=")[^"]*', site + "val/" + path),
-                         (r'(<meta property="og:url" content=")[^"]*', site + "val/" + path)):
+                         (r'(<meta property="og:description" content=")[^"]*', desc), (r'(<link rel="canonical" href=")[^"]*', site + f"{game}/" + path),
+                         (r'(<meta property="og:url" content=")[^"]*', site + f"{game}/" + path)):
             h = re.sub(pat, lambda m: m[1] + e(val), h, count=1)
         h = APP.sub(lambda m: m[1] + f'<div class="card seo">{body}</div>' + m[2], h, count=1)
-        o = dist / "val" / path / "index.html" if path else dist / "val" / "index.html"
+        o = dist / game / path / "index.html" if path else dist / game / "index.html"
         o.parent.mkdir(parents=True, exist_ok=True); o.write_text(h, encoding="utf-8")
-        urls.append("val/" + path)
+        urls.append(f"{game}/" + path)
+    sm = "".join(f"<url><loc>{e(site + u)}</loc></url>" for u in urls)
+    (dist / game / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{sm}</urlset>\n', encoding="utf-8")
 
+def write_pages(dist, site, idx, ads=""):
+    pages = []
+    render = lambda path, title, desc, body: pages.append((path, title, desc, body))
     for p in idx["players"]:
         m, acs, adr, k, d, a = p["s"][:6]
         render(f"player/{p['id']}/", f"{p['n']} ({p['tn']}) – VALORANT Pro Stats & Agents | prostats.gg",
@@ -229,5 +236,4 @@ def write_pages(dist, site, idx, ads=""):
     render("", "prostats.gg – VALORANT Pro Stats, VCT Results & Agent Tier List",
            "op.gg for pro VALORANT: every VCT 2026 series and map, player stats, team map pools, comps and a pro agent tier list.",
            "<h1>VALORANT pro stats</h1>" + "".join(f'<a href="player/{p["id"]}/">{e(p["n"])}</a> ' for p in idx["players"][:80]))
-    sm = "".join(f"<url><loc>{e(site + u)}</loc></url>" for u in urls)
-    (dist / "val" / "sitemap.xml").write_text(f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{sm}</urlset>\n', encoding="utf-8")
+    write_shell(dist, site, ads, "val", pages)
